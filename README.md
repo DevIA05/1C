@@ -6,3 +6,8 @@ Collecter des données de qualité, constituer sa BDD analytique et réaliser le
 
 Développeur chez **Analysis Features Preprocessing And Research**, une ESN spécialisée dans la réalisation d’applicatifs de type BI et intelligence artificielle. On m'a confié la tâche de réaliser un proof of concept (PoC) dans le cadre d’un projet de dashboard d’aide à la décision pour un client exigeant. J'ai accès à un fichier de données brutes, matérialisant un export depuis leurs bases de données opérationnelles. Ce fichier CSV alimentera la base analytique et tient lieu de situation initiale. Les CSV des mois suivants vous seront régulièrement transmis.
 
+# Maquette
+
+https://www.figma.com/file/wCJwaH3dUwMQARRD0wxpHZ/User-case---1C?node-id=0%3A1&t=UDvbBRgSV446cw0N-0
+https://www.figma.com/file/80RRVX8NEuYuqGJUt9FhrT/MCD---1C?t=UDvbBRgSV446cw0N-6
+https://docs.google.com/spreadsheets/d/1p_CTI3__ZoxmkFgh7LEjEW0RCtHmJ5KWUzqi0niW-yk/edit#gid=0
