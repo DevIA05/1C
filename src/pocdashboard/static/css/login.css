@@ -68,14 +68,14 @@ button {
 
 .inputUserIcon {
   position:absolute;
-  top:65px;
+  top:60px;
   right: 80px;
   color:white;
 }
 
 .inputPassIcon {
   position:absolute;
-  top:135px;
+  top:130px;
   right: 80px;
   color:white;
 }
@@ -89,14 +89,16 @@ input:focus::-webkit-input-placeholder {
 }
 
 
-button i:nth-child(2) {
+.submit i:nth-child(2) {
     display: none; 
 }
   
-button:hover i:nth-child(1) {
+.submit:hover i:nth-child(1) {
     display: none;
 }
   
-button:hover i:nth-child(2) {
+.submit:hover i:nth-child(2) {
     display: block;
 }
+
+

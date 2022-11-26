@@ -12,32 +12,31 @@ defer></script>
 {% endblock %}
 
 {% block content %}
-	
-<div class="container">
-  
+
+ 
   {% if messages %}
-    {% for message in messages %}
-      
-      <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-
-    {% endfor %}
+  {% for message in messages %}
+    
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  
+  {% endfor %}
   {% endif %}
-
+	
 
 	<form action="" method=POST>
     {% csrf_token %}
-    <h2><span class="entypo-login"><i class="fa fa-sign-in"></i></span> Login</h2>
+    <h2><span class="entypo-login"><i class="bi bi-box-arrow-in-right"></i> </span> Login</h2>
     <span class="entypo-user inputUserIcon">
-       <i class="fa fa-user"></i>
+      <i class="bi bi-person-fill" style="font-size: 1.8rem;"></i>
      </span>
-    <input type="text" class="user" placeholder="ursername"/>
-    <span class="entypo-key inputPassIcon">
-       <i class="fa fa-key"></i>
-     </span>
-    <input type="password" class="pass"placeholder="password"/>
+    <input type="text" class="user" placeholder="ursername" name="matricule"/>
+    <span class="entypo-key inputPassIcon"> 
+      <i class="bi bi-key-fill" style="font-size: 1.8rem;"></i>  
+    </span>
+    <input type="password" class="pass" placeholder="password" name="password"/>
     <button class="submit">
       <!-- <span class="icon-container"> -->
       <i class="bi bi-lock-fill"> Connexion </i>
@@ -45,8 +44,7 @@ defer></script>
       <!-- </span> -->
     </button>
 	</form>
-		
-</div>
+
 
 
 {% endblock %}

@@ -7,10 +7,9 @@ def login_user(request):
     if request.method == "POST":
         matricule = request.POST['matricule']
         password = request.POST['password']
-        user = authenticate(request, matricule=matricule, password=password)
+        user = authenticate(request, username=matricule, password=password)
         if user is not None:
-            # next page
-            pass
+            return redirect('p1')
         else:
             messages.success(request, ("Erreur d'identifiant ou de mot de passe, veuillez ressayer"))
             return redirect('login')

@@ -19,7 +19,8 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login', include('django.contrib.auth.urls')),
-    path('login', views.login_user, name="login"),
-    path("", views.p1)
+    path('', include('django.contrib.auth.urls')),
+    # path('login', views.login_user, name="login"),
+    path('', views.login_user, name="login"),
+    path("p1", views.p1, name="p1")
 ]

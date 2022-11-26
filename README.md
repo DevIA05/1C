@@ -11,3 +11,6 @@ Développeur chez **Analysis Features Preprocessing And Research**, une ESN spé
 https://www.figma.com/file/wCJwaH3dUwMQARRD0wxpHZ/User-case---1C?node-id=0%3A1&t=UDvbBRgSV446cw0N-0
 https://www.figma.com/file/80RRVX8NEuYuqGJUt9FhrT/MCD---1C?t=UDvbBRgSV446cw0N-6
 https://docs.google.com/spreadsheets/d/1p_CTI3__ZoxmkFgh7LEjEW0RCtHmJ5KWUzqi0niW-yk/edit#gid=0
+
+# Template
+auth: https://codepen.io/lsgrrd/pen/ARxboe
