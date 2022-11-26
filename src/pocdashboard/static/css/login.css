@@ -101,4 +101,8 @@ input:focus::-webkit-input-placeholder {
     display: block;
 }
 
-
+.alert{
+  margin-top: 25px !important;
+  width: 50% !important;
+  left: 25% !important; 
+}
