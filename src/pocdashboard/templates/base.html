@@ -17,13 +17,12 @@
     <header class="site-header">
         <div class="wrapper site-header__wrapper">
             <a class="navbar-brand" href="#">
-                <img src="{% static 'logo.png' %}"  width="200" height="50">
+                <img src="{% static 'image/logo.png' %}"  width="55" height="55"> <span> Analysis Business Intelligence </span>
             </a>
-            <h1 class="personne"> {{ user.username }} </h1>
             <nav class="nav">         
                 {% if user.is_authenticated %}
-            
-                <a class="button-40" role="button" href="{% url 'logout' %}" role="button"> Deconnexion </a>
+                <h2 id="personne"> {{ user.username }} </h2>
+                <a class="button-40" role="button" href="{% url 'logout' %}" role="button"> Déconnexion </a>
                 {% endif %}
             </nav>
         </div>

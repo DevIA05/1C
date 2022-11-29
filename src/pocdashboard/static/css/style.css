@@ -76,7 +76,7 @@ body {
 
 /* CSS */
 .button-40 {
-  background-color: #111827;
+  background-color: #e74c3c;
   border: 1px solid transparent;
   border-radius: .75rem;
   box-sizing: border-box;
@@ -101,7 +101,7 @@ body {
 }
 
 .button-40:hover {
-  background-color: #940920;
+  background-color: #FF8C00;
 }
 
 .button-40:focus {
