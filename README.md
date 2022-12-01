@@ -14,3 +14,7 @@ Développeur chez **Analysis Features Preprocessing And Research**, une ESN spé
 
 # Template
 auth: https://codepen.io/lsgrrd/pen/ARxboe
+
+
+# Table
+Le code sql permettant de créer les tables se trouver dans le script *src/script/tableInPostgreSQL.sql*
