@@ -1,0 +1,3 @@
+from pocdashboard.models import Country
+# Quizz.objects.all().delete()
+Country.objects.all().delete()
