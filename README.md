@@ -14,6 +14,10 @@ Développeur chez **Analysis Features Preprocessing And Research**, une ESN spé
 
 # Template
 auth: https://codepen.io/lsgrrd/pen/ARxboe
+tab: https://freefrontend.com/css-tabs/ Author: Alex - September 8, 2016
+icone svg:  https://fontawesomeicons.com/svg/icons/chart-infographic
+
+
 
 
 # Table
