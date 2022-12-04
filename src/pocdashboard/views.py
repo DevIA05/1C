@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 import pdb; #pdb.set_trace()
+from pocdashboard.forms import CsvImportForm
 
-# Create your views here.
+# Connexion
 def login_user(request):
+    # Récupération des identifiants
     if request.method == "POST":
-        matricule = request.POST['matricule']
+        matricule = request.POST['matricule'] 
         password = request.POST['password']
         user = authenticate(request, username=matricule, password=password)
         if user is not None:
@@ -17,12 +19,15 @@ def login_user(request):
             return redirect('login')
     else:
         return render(request, 'login.html', {})
-    
+
+# Déconnexion
 def logout_user(request):
     logout(request)
     messages.success(request, ("Session deconnectée"))
     return redirect('login')
 
+# Dashboard
 def dashboard(request):
     # pdb.set_trace()
-    return render(request, 'dashboard.html')
+    form = CsvImportForm()
+    return render(request, 'dashboard.html', {"form": form})
