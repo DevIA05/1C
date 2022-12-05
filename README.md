@@ -11,14 +11,23 @@ Développeur chez **Analysis Features Preprocessing And Research**, une ESN spé
 [Diagramme Cas d'utilisation](https://www.figma.com/file/wCJwaH3dUwMQARRD0wxpHZ/User-case---1C?node-id=0%3A1&t=UDvbBRgSV446cw0N-0)  
 [MCD](https://www.figma.com/file/80RRVX8NEuYuqGJUt9FhrT/MCD---1C?t=UDvbBRgSV446cw0N-6)  
 [Dictionnaire de données](https://docs.google.com/spreadsheets/d/1p_CTI3__ZoxmkFgh7LEjEW0RCtHmJ5KWUzqi0niW-yk/edit#gid=0)  
+[Graphe de dialogue](https://www.figma.com/file/SkDeTZXnItz1stw5rYBSjY/graphe-de-dialogue?t=Lqoac4spLJYNhZWi-0)
 
 # Template
-auth: https://codepen.io/lsgrrd/pen/ARxboe
-tab: https://freefrontend.com/css-tabs/ Author: Alex - September 8, 2016
-icone svg:  https://fontawesomeicons.com/svg/icons/chart-infographic
-
-
-
+auth: https://codepen.io/lsgrrd/pen/ARxboe  
+tab: https://freefrontend.com/css-tabs/ Author: Alex - September 8, 2016  
+icone svg:  https://fontawesomeicons.com/svg/icons/chart-infographic  
 
 # Table
 Le code sql permettant de créer les tables se trouver dans le script *src/script/tableInPostgreSQL.sql*
+
+
+# Benchmark
+
+## Lecture du fichier
+**Read csv with dask**: 0.1564185619354248 sec  
+```dd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')```  
+**Read csv with pandas (with chunksize)**: 0.022058725357055664 sec  
+```pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')```  
+**Read csv with dask (with chunksize)**: 0.1851048469543457 sec  
+```dd.read_csv(csv_file,blocksize=25e6, delimiter=',', encoding= 'unicode_escape')```
