@@ -3,6 +3,7 @@
 
 {% block header %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css'  %}" />
+<link rel="stylesheet" href="{% static 'css/dashboard_csv.css'  %}" />
 {% endblock %}
 
 {% block content %}
@@ -39,10 +40,13 @@
   <div class="slider"><div class="indicator"></div></div>
   <div class="content">
     <section>
-      <!-- <h2>Features</h2> -->
-      <div id="container-csv">
-        {{form}}
-      </div>
+          <div class="container">
+            <form action="" method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{form}} 
+              <button type="submit"> Upload File </button> 
+            </form>
+          </div>     
     </section>
     <section>
         <h2>Delivery Contents</h2>
