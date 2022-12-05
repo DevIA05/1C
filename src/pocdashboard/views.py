@@ -3,6 +3,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 import pdb; #pdb.set_trace()
 from pocdashboard.forms import CsvImportForm
+import pandas as pd
+import io
+from dask import dataframe as dd
+import time
 
 # Connexion
 def login_user(request):
@@ -30,4 +34,9 @@ def logout_user(request):
 def dashboard(request):
     # pdb.set_trace()
     form = CsvImportForm()
+    if request.method == "POST":
+        csv_file = request.FILES["csv_upload"].temporary_file_path()
+        dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
+        print(dataframe)
+        dataframe[""]
     return render(request, 'dashboard.html', {"form": form})
