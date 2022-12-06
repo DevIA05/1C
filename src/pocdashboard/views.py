@@ -33,10 +33,31 @@ def logout_user(request):
 # Dashboard
 def dashboard(request):
     # pdb.set_trace()
-    form = CsvImportForm()
     if request.method == "POST":
         csv_file = request.FILES["csv_upload"].temporary_file_path()
-        dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
-        print(dataframe)
-        dataframe[""]
-    return render(request, 'dashboard.html', {"form": form})
+        # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
+        dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
+        infos = dataProcessing(dataframe)
+        return render(request, 'dashboard.html', {"infos": infos})
+    else:
+        form = CsvImportForm() 
+        return render(request, 'dashboard.html', {"form": form})
+
+# ** Extract information about the dataset
+# dataframe{pandas.DataFrame} data
+# return infos{dict} dataframe information
+def getInfos(dataframe):
+    infos = {}
+    infos["shape"] = {"line": dataframe.shape[0],
+                      "col" : dataframe.shape[1]}
+    ltype = []                          
+    for c, n in zip(range(0, dataframe.shape[1]), dataframe.columns.values):
+        ltype.append(str(n)+": " + str(type(dataframe._get_value(0,c, takeable=True))))
+    infos["type"] = ltype
+    return infos
+
+
+
+def dataProcessing(dataframe):
+    infos = getInfos(dataframe)
+    return infos
