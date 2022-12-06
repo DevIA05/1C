@@ -77,12 +77,13 @@
     height: 2rem;
 }
 
-/* .container-csv{
+.container-csv{
     background-color:#f1e5e6;
     display: flex;
     flex-wrap: wrap;
+    align-items:baseline;
 
-} */
+}
 
 .container-bSend {
     background-color: aqua;
@@ -98,11 +99,16 @@
     flex-basis: 50%;
     height: 50px;
     width: 25px;
+    margin-top: 50px;
   }
 
 #container-infos{
     background-color: bisque;
-    width: 50%;
+    width: 70%;
     height: 40%;
     padding: 20px;
+}
+
+#container-infos p{
+    padding: 15px;
 }
