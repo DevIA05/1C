@@ -5,7 +5,6 @@ import pdb; #pdb.set_trace()
 from pocdashboard.forms import CsvImportForm
 import pandas as pd
 import io
-from dask import dataframe as dd
 import time
 
 # Connexion
@@ -38,6 +37,7 @@ def dashboard(request):
         # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
         dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
         infos = dataProcessing(dataframe)
+        print(infos)
         return render(request, 'dashboard.html', {"infos": infos})
     else:
         form = CsvImportForm() 
