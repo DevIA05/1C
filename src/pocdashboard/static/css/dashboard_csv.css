@@ -8,7 +8,8 @@
 }
 
 .inputfile + label {
-    /* max-width: 85%; */
+    max-width: 185px;
+    min-width: 185px;
     /* font-size: 1.25rem; */
     /* 20px */
     font-weight: 700;
@@ -88,7 +89,7 @@
 .container-bSend {
     background-color: aqua;
     width: 30%;
-    margin-top: 2.5rem;
+    margin-top: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
