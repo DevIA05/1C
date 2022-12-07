@@ -32,32 +32,93 @@ def logout_user(request):
 # Dashboard
 def dashboard(request):
     # pdb.set_trace()
+    form = CsvImportForm() 
     if request.method == "POST":
         csv_file = request.FILES["csv_upload"].temporary_file_path()
         # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
         dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
         infos = dataProcessing(dataframe)
         print(infos)
-        return render(request, 'dashboard.html', {"infos": infos})
-    else:
-        form = CsvImportForm() 
-        return render(request, 'dashboard.html', {"form": form})
+    return render(request, 'dashboard.html', {"form": form})
 
 # ** Extract information about the dataset
 # dataframe{pandas.DataFrame} data
 # return infos{dict} dataframe information
 def getInfos(dataframe):
     infos = {}
+    # Dimension    
     infos["shape"] = {"line": dataframe.shape[0],
                       "col" : dataframe.shape[1]}
-    ltype = []                          
+    # Column type
+    ltype = {}
     for c, n in zip(range(0, dataframe.shape[1]), dataframe.columns.values):
-        ltype.append(str(n)+": " + str(type(dataframe._get_value(0,c, takeable=True))))
+        ltype[str(n)] = str(type(dataframe._get_value(0,c, takeable=True)))
     infos["type"] = ltype
+    # countrys
+    infos["country"] = {"lcountry" : dataframe["Country"].unique(),
+                         "nbcountry": dataframe["Country"].unique().shape}
+
     return infos
 
-
+def cleaningPhase(dataframe):
+    err      = pd.DataFrame() # Met les erreurs dans un tableau
+    countErr = {}             # Comptabilise les erreurs 
+    err, countErr, dataframe = country(err, countErr, dataframe)
+    pass
 
 def dataProcessing(dataframe):
     infos = getInfos(dataframe)
     return infos
+
+# ** Set aside duplicates 
+# ** relative to columns InvoiceNo and StockCode
+# err{pandas.Dataframe} stores rows set aside
+# countErr{dict} stores the number of rows matched by a filter 
+# dataframe{pandas.Dataframe} data
+# return err, countErr, dataframe from which unwanted data has been removed
+def duplicated(err, countErr, dataframe):
+    d = dataframe.duplicated(subset = ['InvoiceNo', 'StockCode']) # return a boolean vector
+    errDuplicated = dataframe[d==True]
+    errDuplicated["Erreur"] = "Doublon"
+    dataframe = dataframe[d==False] 
+    countErr["Duplicate"] = errDuplicated.shape[0] + (0 if countErr.get('Duplicate')==None else countErr.get('Duplicate'))
+    err = pd.concat(err, errDuplicated)
+    return err, countErr, dataframe
+
+
+# ** Process the country column
+# err{pandas.Dataframe} stores rows set aside
+# countErr{dict} stores the number of rows matched by a filter 
+# dataframe{pandas.Dataframe} data
+# return err, countErr, dataframe from which unwanted data has been removed
+def country(err, countErr, dataframe):
+    ## Unspecified
+    c = dataframe['Country'] == "Unspecified" # return a boolean vector
+    errCountry = dataframe[c==True]
+    errCountry["Erreur"] = "Pays: Unspecified" 
+    dataframe = dataframe[c==False] 
+    countErr["Country"] = errCountry.shape[0] + (0 if countErr.get('Country')==None else countErr.get('Country'))
+    err = pd.concat(err, errCountry)
+    ## None
+    c = dataframe['Country'] == None
+    errCountry = dataframe[c==True]
+    errCountry["Erreur"] = "Pays: None"
+    dataframe = dataframe[c==False] 
+    countErr["Country"] = errCountry.shape[0] + (0 if countErr.get('Country')==None else countErr.get('Country'))
+    err = pd.concat(err, errCountry)
+    return err, countErr, dataframe
+
+# ** Process the InvoiceDate column
+# err{pandas.Dataframe} stores rows set aside
+# countErr{dict} stores the number of rows matched by a filter 
+# dataframe{pandas.Dataframe} data
+# return err, countErr, dataframe from which unwanted data has been removed
+def invoicedate(err, countErr, dataframe):
+    date_pattern = "^([0]{0,1}[1-9]|1[012])\/([1-9]|([012][0-9])|(3[01]))\/((\d\d\d\d)) [012]{0,1}[0-9]:[0-6][0-9]$"
+    id = dataframe['InvoiceDate'].str.match(date_pattern) # return a boolean vector
+    errDate = dataframe[id==False]
+    errDate["Erreur"] = "La date est incorrecte"
+    dataframe = dataframe[id==True]
+    countErr["Date"] = errDate.shape[0] + (0 if countErr.get('Date')==None else countErr.get('Date'))
+    err = pd.concat(err, errDate)
+    return err, countErr, dataframe
