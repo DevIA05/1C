@@ -113,3 +113,37 @@
 #container-infos p{
     padding: 15px;
 }
+
+.row {
+left: 25%;
+position: relative;
+}
+    
+  .column {
+    float: left;
+    width: 30%;
+    padding: 5px;
+  }
+  
+  /* Clearfix (clear floats) */
+  .row::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
+  
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    /* width: 60%; */
+    border: 1px solid #ddd;
+  }
+  
+  th, td {
+    text-align: left;
+    padding: 16px;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }

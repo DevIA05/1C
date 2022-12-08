@@ -41,36 +41,88 @@
   <div class="slider"><div class="indicator"></div></div>
   <div class="content">
     <section>
-          <form action="" method="POST" enctype="multipart/form-data">
-              {% csrf_token %}
-            <div class="container-csv">
-              <div class="container-bSend">
-                <div class="box">
+      <form action="" method="POST" enctype="multipart/form-data">
+         {% csrf_token %}
+         <div class="container-csv">
+            <div class="container-bSend">
+               <div class="box">
                   {% comment %} <input type="file" name="file-1[]" id="file-1" class="inputfile inputfile-1" data-multiple-caption="{count} files selected" multiple> {% endcomment %}
-<!-- ======================== Input File ===================== -->
+                  <!-- ======================== Input File ===================== -->
                   {{form}}
                   <label for="file-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
-                      <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/>
-                    </svg> 
-                    <span>Choose a file&hellip;</span>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
+                        <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/>
+                     </svg>
+                     <span>Choose a file&hellip;</span>
                   </label>
-                </div> 
-<!-- ======================= Submit Button ===================== -->
-                <button id="send-file" type="submit"> 
+               </div>
+               <!-- ======================= Submit Button ===================== -->
+               <button id="send-file" type="submit">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
-                    <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/>
-                  </svg> 
-                </button>
-                <button class="break"> test </button>
+                     <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/>
+                  </svg>
+               </button>
+      </form>
+      <button class="break"> test </button>
+      </div>
+      <div id="container-infos">
+                {% if l is not None %}
+<!-- =======================================  Informations ======================================= -->
+<div class="row">
+  <div class="column">
+                <h3> Informations </h3>
+                <table>
+                   <tr>
+                      <th>Lignes</th>
+                      <td>{{l}}</td>
+                   </tr>
+                   <tr>
+                      <th>Colonnes</th>
+                      <td>{{c}}</td>
+                   </tr>
+                   <tr>
+                      <th>Nombre de pays</th>
+                      <td><button>{{nbC}} </button></td>
+                   </tr>
+                   <tr>
+                      <th>déscription</th>
+                      <td><button> {{nbD}} </button></td>
+                   </tr>
+                   <tr>
+                      <th>Type de colonnes</th>
+                      <td><button> </button> </td>
+                   </tr>
+                </table>
               </div>
-              <div id="container-infos">
-                <p>  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus et est mattis, eleifend turpis ut, mollis dui. Curabitur aliquet, ipsum in pharetra feugiat, augue metus consequat felis, sed egestas ligula lacus sed nibh. Quisque convallis ante ut turpis feugiat lobortis. Sed non orci quis nibh dignissim sagittis ac pretium tortor. Proin ac tortor nec ante pharetra auctor. Cras malesuada, erat in fringilla pretium, lorem metus euismod enim, nec scelerisque orci lectus consectetur metus. Nullam sit amet commodo dui. Curabitur odio risus, pellentesque et sodales non, ornare tempor ligula. Phasellus iaculis neque in ultrices mollis. Suspendisse rutrum lorem nulla. Pellentesque convallis interdum ante in pellentesque. Praesent arcu erat, scelerisque ac elit ut, imperdiet malesuada ante.
-
-                  Duis et lacinia felis, viverra tempor quam. Aenean blandit quam eget fermentum fringilla. In hac habitasse platea dictumst. Nam aliquet, urna sed dignissim venenatis, leo sem blandit velit, sed porttitor magna felis vitae quam. Nulla elit ligula, dignissim et vestibulum eget, iaculis non turpis. Phasellus feugiat nec tortor ut varius. Phasellus nec tristique ante, a facilisis urna. Vestibulum a pellentesque magna, quis interdum nunc. In vulputate nunc eu est scelerisque imperdiet. Nullam egestas porta lorem at tincidunt. Nulla finibus augue eu hendrerit mollis. Nam sed ex porta, ultrices arcu nec, fringilla ex. Fusce quis elit eu sem lacinia elementum. Cras at nunc nunc. Nunc vulputate, risus eu feugiat cursus, urna sapien pellentesque diam, id auctor enim urna sed eros. Etiam mi nibh, ultricies pretium eleifend quis, laoreet ut nibh.  
-                </p>
-              </div>  
-            </form>
+<!-- =======================================  Résultat ======================================= -->
+<div class="column">
+                <h3> Résultats </h3>
+                <table>
+                  <tr>
+                     <th>Lignes</th>
+                     <td>{{l}}</td>
+                  </tr>
+                  <tr>
+                     <th>Colonnes</th>
+                     <td>{{c}}</td>
+                  </tr>
+                  <tr>
+                     <th>Nombre de pays</th>
+                     <td><button>{{nbC}} </button></td>
+                  </tr>
+                  <tr>
+                     <th>déscription</th>
+                     <td><button> {{nbD}} </button></td>
+                  </tr>
+                  <tr>
+                     <th>Type de colonnes</th>
+                     <td><button> </button> </td>
+                  </tr>
+               </table>
+              </div>
+            </div>
+                {% endif %}
+              </div>
           </div>     
     </section>
     <section>
