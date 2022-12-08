@@ -37,9 +37,14 @@ def dashboard(request):
         csv_file = request.FILES["csv_upload"].temporary_file_path()
         # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
         dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
-        infos = dataProcessing(dataframe)
-        print(infos)
-    return render(request, 'dashboard.html', {"form": form})
+        infos=getInfos(dataframe)
+        cleaningPhase(dataframe)
+        return render(request, 'dashboard.html', {"form": form,
+                                                  "l": infos["shape"]["line"], "c": infos["shape"]["col"],
+                                                  "type": infos["type"],
+                                                  "country": infos["country"]["lcountry"], "nbC": infos["country"]["nbcountry"],
+                                                  "description": infos["description"]["ldescription"], "nbD": infos["description"]["nbdescription"]})
+    else: return render(request, 'dashboard.html', {"form": form})
 
 # ** Extract information about the dataset
 # dataframe{pandas.DataFrame} data
@@ -54,21 +59,19 @@ def getInfos(dataframe):
     for c, n in zip(range(0, dataframe.shape[1]), dataframe.columns.values):
         ltype[str(n)] = str(type(dataframe._get_value(0,c, takeable=True)))
     infos["type"] = ltype
-    # countrys
+    # Countries
     infos["country"] = {"lcountry" : dataframe["Country"].unique(),
-                         "nbcountry": dataframe["Country"].unique().shape}
-
+                         "nbcountry": dataframe["Country"].unique().shape[0]}
+    # Description
+    infos["description"] = {"ldescription" : dataframe["Description"].unique(),
+                            "nbdescription": dataframe["Description"].unique().shape[0]}
     return infos
 
 def cleaningPhase(dataframe):
     err      = pd.DataFrame() # Met les erreurs dans un tableau
     countErr = {}             # Comptabilise les erreurs 
-    err, countErr, dataframe = country(err, countErr, dataframe)
-    pass
-
-def dataProcessing(dataframe):
-    infos = getInfos(dataframe)
-    return infos
+    err, countErr, dataframe = duplicated(err, countErr, dataframe)
+    pdb.set_trace()
 
 # ** Set aside duplicates 
 # ** relative to columns InvoiceNo and StockCode
@@ -84,7 +87,6 @@ def duplicated(err, countErr, dataframe):
     countErr["Duplicate"] = errDuplicated.shape[0] + (0 if countErr.get('Duplicate')==None else countErr.get('Duplicate'))
     err = pd.concat(err, errDuplicated)
     return err, countErr, dataframe
-
 
 # ** Process the country column
 # err{pandas.Dataframe} stores rows set aside
@@ -119,6 +121,48 @@ def invoicedate(err, countErr, dataframe):
     errDate = dataframe[id==False]
     errDate["Erreur"] = "La date est incorrecte"
     dataframe = dataframe[id==True]
-    countErr["Date"] = errDate.shape[0] + (0 if countErr.get('Date')==None else countErr.get('Date'))
+    countErr["Date"] = errDate.shape[0]
     err = pd.concat(err, errDate)
     return err, countErr, dataframe
+
+def quantity(err, countErr, dataframe):
+    q = dataframe["Quantity"] < 0
+    errQ = dataframe[q==True]
+    errQ["Erreur"] = "Quantité négatif"
+    dataframe = dataframe[id==False]
+    countErr["Quantity"] = errQ.shape[0]
+    err = pd.concat(err, errQ)
+    return err, countErr, dataframe
+
+def unitprice(err, countErr, dataframe):
+    up = dataframe["UnitPrice"] <= 0
+    errUp = dataframe[up==True]
+    errUp["Erreur"] = "UnitPrice négatif ou 0"
+    dataframe = dataframe[up==False]
+    countErr["UnitPrice"] = errUp.shape[0]
+    err = pd.concat(err, errUp)
+    return err, countErr, dataframe
+
+def stockcode(err, countErr, dataframe):
+    sc_pattern = "^[a-zA-Z]" #"^\d{1,5}\d|[a-zA-Z]$"
+    sc = dataframe['StockCode'].str.match(sc_pattern) # return a boolean vector
+    errSc = dataframe[sc==True]
+    errSc["Erreur"] = "StockCode ne correspond pas au motif suivant: ^\d{1,6}$|^\d{1,5}[a-zA-Z]$"
+    dataframe = dataframe[sc==False]
+    countErr["StockCode"] = errSc.shape[0]
+    err = pd.concat(err, errSc)
+    return err, countErr, dataframe
+
+def invoiceno(err, countErr, dataframe):
+    in_pattern = "^\d{6}$"
+    _in = dataframe["InvoiceNo"].str.match(in_pattern)
+    errIn = dataframe[_in==True]
+    errIn["Erreur"] = "InvoiceNo ne correspond pas au motif suivant: ^\d{6}$"
+    dataframe = dataframe[_in==False]
+    countErr["InvoiceNo"] = errIn.shape[0]
+    err = pd.concat(err, errIn)
+    return err, countErr, dataframe
+
+
+
+
