@@ -70,99 +70,60 @@ def getInfos(dataframe):
 def cleaningPhase(dataframe):
     err      = pd.DataFrame() # Met les erreurs dans un tableau
     countErr = {}             # Comptabilise les erreurs 
-    err, countErr, dataframe = duplicated(err, countErr, dataframe)
-    pdb.set_trace()
+
+    # Set aside duplicates relative to columns InvoiceNo and StockCode
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe.duplicated(subset = ['InvoiceNo', 'StockCode']),
+                                        comment="Doublon", name = "Duplicate")
+    # Process the country column
+    ##  Unspecified
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe['Country'] == "Unspecified",
+                                        comment="Unspecified", name = "Country")
+    ## None
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe['Country'] == None,
+                                        comment="Pays: None", name = "Country")
+    # Process the InvoiceDate column
+    date_pattern = "^([0]{0,1}[1-9]|1[012])\/([1-9]|([012][0-9])|(3[01]))\/((\d\d\d\d)) [012]{0,1}[0-9]:[0-6][0-9]$"
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=~dataframe['InvoiceDate'].str.match(date_pattern),
+                                        comment="La date est incorrecte", name = "Date")
+    # Process the InvoiceDate column
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe["Quantity"] < 0,
+                                        comment="Quantité négatif", name = "Quantity")
+    # Process the UnitPrice column
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe["UnitPrice"] <= 0,
+                                        comment="UnitPrice négatif ou 0", name = "UnitPrice")
+    # Process the StockCode column
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe["StockCode"].str.match("^[a-zA-Z]"),
+                                        comment= "StockCode ne correspond pas au motif", name = "StockCode")
+    # Process the InvoiceNo column
+    err, countErr, dataframe = dropLine(err, countErr, dataframe,
+                                        booldf=dataframe["InvoiceNo"].str.match("^\d{6}$"),
+                                        comment= "InvoiceNo ne correspond pas au motif", name = "InvoiceNo")
+
+
 
 # ** Set aside duplicates 
 # ** relative to columns InvoiceNo and StockCode
 # err{pandas.Dataframe} stores rows set aside
 # countErr{dict} stores the number of rows matched by a filter 
 # dataframe{pandas.Dataframe} data
+# booldf{pandas.Dataframe} boolean vector corresponding to the test result
+# comment{str} comment
+# name{str} dictionary key name
 # return err, countErr, dataframe from which unwanted data has been removed
-def duplicated(err, countErr, dataframe):
-    d = dataframe.duplicated(subset = ['InvoiceNo', 'StockCode']) # return a boolean vector
-    errDuplicated = dataframe[d==True]
-    errDuplicated["Erreur"] = "Doublon"
-    dataframe = dataframe[d==False] 
-    countErr["Duplicate"] = errDuplicated.shape[0] + (0 if countErr.get('Duplicate')==None else countErr.get('Duplicate'))
-    err = pd.concat(err, errDuplicated)
+def dropLine(err, countErr, dataframe,
+             booldf, comment, name):
+    pdb.set_trace()
+    errX = dataframe[booldf==True].copy()
+    errX["Erreur"] = comment
+    dataframe = dataframe[booldf==False]
+    countErr[name] = errX.shape[0] + (0 if countErr.get(name)==None else countErr.get(name))
+    err = pd.concat([err, errX])
     return err, countErr, dataframe
-
-# ** Process the country column
-# err{pandas.Dataframe} stores rows set aside
-# countErr{dict} stores the number of rows matched by a filter 
-# dataframe{pandas.Dataframe} data
-# return err, countErr, dataframe from which unwanted data has been removed
-def country(err, countErr, dataframe):
-    ## Unspecified
-    c = dataframe['Country'] == "Unspecified" # return a boolean vector
-    errCountry = dataframe[c==True]
-    errCountry["Erreur"] = "Pays: Unspecified" 
-    dataframe = dataframe[c==False] 
-    countErr["Country"] = errCountry.shape[0] + (0 if countErr.get('Country')==None else countErr.get('Country'))
-    err = pd.concat(err, errCountry)
-    ## None
-    c = dataframe['Country'] == None
-    errCountry = dataframe[c==True]
-    errCountry["Erreur"] = "Pays: None"
-    dataframe = dataframe[c==False] 
-    countErr["Country"] = errCountry.shape[0] + (0 if countErr.get('Country')==None else countErr.get('Country'))
-    err = pd.concat(err, errCountry)
-    return err, countErr, dataframe
-
-# ** Process the InvoiceDate column
-# err{pandas.Dataframe} stores rows set aside
-# countErr{dict} stores the number of rows matched by a filter 
-# dataframe{pandas.Dataframe} data
-# return err, countErr, dataframe from which unwanted data has been removed
-def invoicedate(err, countErr, dataframe):
-    date_pattern = "^([0]{0,1}[1-9]|1[012])\/([1-9]|([012][0-9])|(3[01]))\/((\d\d\d\d)) [012]{0,1}[0-9]:[0-6][0-9]$"
-    id = dataframe['InvoiceDate'].str.match(date_pattern) # return a boolean vector
-    errDate = dataframe[id==False]
-    errDate["Erreur"] = "La date est incorrecte"
-    dataframe = dataframe[id==True]
-    countErr["Date"] = errDate.shape[0]
-    err = pd.concat(err, errDate)
-    return err, countErr, dataframe
-
-def quantity(err, countErr, dataframe):
-    q = dataframe["Quantity"] < 0
-    errQ = dataframe[q==True]
-    errQ["Erreur"] = "Quantité négatif"
-    dataframe = dataframe[id==False]
-    countErr["Quantity"] = errQ.shape[0]
-    err = pd.concat(err, errQ)
-    return err, countErr, dataframe
-
-def unitprice(err, countErr, dataframe):
-    up = dataframe["UnitPrice"] <= 0
-    errUp = dataframe[up==True]
-    errUp["Erreur"] = "UnitPrice négatif ou 0"
-    dataframe = dataframe[up==False]
-    countErr["UnitPrice"] = errUp.shape[0]
-    err = pd.concat(err, errUp)
-    return err, countErr, dataframe
-
-def stockcode(err, countErr, dataframe):
-    sc_pattern = "^[a-zA-Z]" #"^\d{1,5}\d|[a-zA-Z]$"
-    sc = dataframe['StockCode'].str.match(sc_pattern) # return a boolean vector
-    errSc = dataframe[sc==True]
-    errSc["Erreur"] = "StockCode ne correspond pas au motif suivant: ^\d{1,6}$|^\d{1,5}[a-zA-Z]$"
-    dataframe = dataframe[sc==False]
-    countErr["StockCode"] = errSc.shape[0]
-    err = pd.concat(err, errSc)
-    return err, countErr, dataframe
-
-def invoiceno(err, countErr, dataframe):
-    in_pattern = "^\d{6}$"
-    _in = dataframe["InvoiceNo"].str.match(in_pattern)
-    errIn = dataframe[_in==True]
-    errIn["Erreur"] = "InvoiceNo ne correspond pas au motif suivant: ^\d{6}$"
-    dataframe = dataframe[_in==False]
-    countErr["InvoiceNo"] = errIn.shape[0]
-    err = pd.concat(err, errIn)
-    return err, countErr, dataframe
-
-
-
 
