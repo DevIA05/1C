@@ -106,8 +106,6 @@ def cleaningPhase(dataframe):
                                         booldf=dataframe["InvoiceNo"].str.match("^\d{6}$"),
                                         comment= "InvoiceNo ne correspond pas au motif", name = "InvoiceNo")
 
-
-
 # ** Set aside duplicates 
 # ** relative to columns InvoiceNo and StockCode
 # err{pandas.Dataframe} stores rows set aside
