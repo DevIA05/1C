@@ -4,8 +4,7 @@ from django.contrib import messages
 import pdb; #pdb.set_trace()
 from pocdashboard.forms import CsvImportForm
 import pandas as pd
-import io
-import time
+import io, time, re
 
 # Connexion
 def login_user(request):
@@ -21,7 +20,7 @@ def login_user(request):
             messages.success(request, ("Erreur d'identifiant ou de mot de passe, veuillez ressayer"))
             return redirect('login')
     else:
-        return render(request, 'login.html', {})
+        return render(request, 'login/login.html', {})
 
 # Déconnexion
 def logout_user(request):
@@ -38,34 +37,46 @@ def dashboard(request):
         # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
         dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
         infos=getInfos(dataframe)
-        cleaningPhase(dataframe)
-        return render(request, 'dashboard.html', {"form": form,
-                                                  "l": infos["shape"]["line"], "c": infos["shape"]["col"],
-                                                  "type": infos["type"],
-                                                  "country": infos["country"]["lcountry"], "nbC": infos["country"]["nbcountry"],
-                                                  "description": infos["description"]["ldescription"], "nbD": infos["description"]["nbdescription"]})
-    else: return render(request, 'dashboard.html', {"form": form})
+        err, countErr, dataframe = cleaningPhase(dataframe)
+        resInfos, lInfos=getInfos(dataframe, isCleaned=True)
+        countErr["Total"] = str(sum(countErr.values())) + " (" + str("{:.1f}".format((sum(countErr.values())*100)/infos["Nombre de ligne"])) + "%)"
+        return render(request, 'dashboard/dashboard.html', {"form"     : form,
+                                                            "infos"    : infos,
+                                                            "resInfos" : resInfos,
+                                                            "lInfos"   : lInfos,
+                                                            "countErr" : countErr
+                                                #   "l": infos["shape"]["line"], "c": infos["shape"]["col"],
+                                                #   "type": infos["type"],
+                                                #   "country": infos["country"]["lcountry"], "nbC": infos["country"]["nbcountry"],
+                                                #   "description": infos["description"]["ldescription"], "nbD": infos["description"]["nbdescription"]
+                                                  }
+                      )
+    else: return render(request, 'dashboard/dashboard.html', {"form": form})
 
 # ** Extract information about the dataset
 # dataframe{pandas.DataFrame} data
 # return infos{dict} dataframe information
-def getInfos(dataframe):
+def getInfos(dataframe, isCleaned=False):
     infos = {}
+    l     = {}
     # Dimension    
-    infos["shape"] = {"line": dataframe.shape[0],
-                      "col" : dataframe.shape[1]}
-    # Column type
-    ltype = {}
-    for c, n in zip(range(0, dataframe.shape[1]), dataframe.columns.values):
-        ltype[str(n)] = str(type(dataframe._get_value(0,c, takeable=True)))
-    infos["type"] = ltype
-    # Countries
-    infos["country"] = {"lcountry" : dataframe["Country"].unique(),
-                         "nbcountry": dataframe["Country"].unique().shape[0]}
-    # Description
-    infos["description"] = {"ldescription" : dataframe["Description"].unique(),
-                            "nbdescription": dataframe["Description"].unique().shape[0]}
-    return infos
+    infos["Nombre de ligne"]   = dataframe.shape[0]
+    infos["Nombre de colonne"] = dataframe.shape[1]
+    # Column type    
+    if(isCleaned):
+        # Countries
+        l["lPays"] = dataframe["Country"].unique(),
+        infos["Pays"]  = dataframe["Country"].unique().shape[0]
+        # Description
+        l["ldescription"] = dataframe["Description"].unique(),
+        infos["StockCode"]  = dataframe["StockCode"].unique().shape[0]
+        return infos, l
+    else:
+        ltype = ""
+        for c, n in zip(range(0, dataframe.shape[1]), dataframe.columns.values):
+            ltype += str(n) + ": " + str(type(dataframe._get_value(0,c, takeable=True))) + "\n"
+        infos["Type de données"] = re.sub("[<>']|class", '', ltype) 
+        return infos
 
 def cleaningPhase(dataframe):
     err      = pd.DataFrame() # Met les erreurs dans un tableau
@@ -73,12 +84,12 @@ def cleaningPhase(dataframe):
 
     # Set aside duplicates relative to columns InvoiceNo and StockCode
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
-                                        booldf=dataframe.duplicated(subset = ['InvoiceNo', 'StockCode']),
+                                        booldf=dataframe.duplicated(subset = ['InvoiceNo', 'StockCode']), # return a boolean vector
                                         comment="Doublon", name = "Duplicate")
     # Process the country column
     ##  Unspecified
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
-                                        booldf=dataframe['Country'] == "Unspecified",
+                                        booldf=dataframe['Country'] == "Unspecified",                     
                                         comment="Unspecified", name = "Country")
     ## None
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
@@ -89,7 +100,7 @@ def cleaningPhase(dataframe):
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
                                         booldf=~dataframe['InvoiceDate'].str.match(date_pattern),
                                         comment="La date est incorrecte", name = "Date")
-    # Process the InvoiceDate column
+    # Process the Quantity column
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
                                         booldf=dataframe["Quantity"] < 0,
                                         comment="Quantité négatif", name = "Quantity")
@@ -103,9 +114,11 @@ def cleaningPhase(dataframe):
                                         comment= "StockCode ne correspond pas au motif", name = "StockCode")
     # Process the InvoiceNo column
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
-                                        booldf=dataframe["InvoiceNo"].str.match("^\d{6}$"),
+                                        booldf=~dataframe["InvoiceNo"].str.match("^\d{6}$"),
                                         comment= "InvoiceNo ne correspond pas au motif", name = "InvoiceNo")
-
+       
+    return err, countErr, dataframe
+    
 # ** Set aside duplicates 
 # ** relative to columns InvoiceNo and StockCode
 # err{pandas.Dataframe} stores rows set aside
@@ -117,11 +130,20 @@ def cleaningPhase(dataframe):
 # return err, countErr, dataframe from which unwanted data has been removed
 def dropLine(err, countErr, dataframe,
              booldf, comment, name):
-    pdb.set_trace()
-    errX = dataframe[booldf==True].copy()
-    errX["Erreur"] = comment
-    dataframe = dataframe[booldf==False]
-    countErr[name] = errX.shape[0] + (0 if countErr.get(name)==None else countErr.get(name))
-    err = pd.concat([err, errX])
+    if(booldf.any()):        
+        errX = dataframe[booldf==True].copy()
+        errX["Erreur"] = comment
+        dataframe = dataframe[booldf==False]
+        countErr[name] = errX.shape[0] + (0 if countErr.get(name)==None else countErr.get(name))
+        err = pd.concat([err, errX])
     return err, countErr, dataframe
 
+
+
+# from django import template
+
+# register = template.Library()
+
+# @register.filter
+# def percentage(value, arg):
+#     return format((value*100)/arg, "%")
