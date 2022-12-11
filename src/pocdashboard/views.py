@@ -1,10 +1,15 @@
+from tempfile import NamedTemporaryFile, TemporaryFile
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 import pdb; #pdb.set_trace()
 from pocdashboard.forms import CsvImportForm
 import pandas as pd
-import io, time, re
+import io, time, re, os
+from django.http.response import HttpResponse
+from django.http import StreamingHttpResponse
+from wsgiref.util import FileWrapper
+import mimetypes
 
 # Connexion
 def login_user(request):
@@ -39,17 +44,16 @@ def dashboard(request):
         infos=getInfos(dataframe)
         err, countErr, dataframe = cleaningPhase(dataframe)
         resInfos, lInfos=getInfos(dataframe, isCleaned=True)
+                                                                      # Calcule le pourcentage de donnée mis de coté et ne garde que la première décimal
         countErr["Total"] = str(sum(countErr.values())) + " (" + str("{:.1f}".format((sum(countErr.values())*100)/infos["Nombre de ligne"])) + "%)"
+        #fileErr(request, object=err)
+        # df = pd.DataFrame(data={"ColumnWithé": ["éà"]})
+        fileErr(request, object=df)
         return render(request, 'dashboard/dashboard.html', {"form"     : form,
                                                             "infos"    : infos,
                                                             "resInfos" : resInfos,
                                                             "lInfos"   : lInfos,
-                                                            "countErr" : countErr
-                                                #   "l": infos["shape"]["line"], "c": infos["shape"]["col"],
-                                                #   "type": infos["type"],
-                                                #   "country": infos["country"]["lcountry"], "nbC": infos["country"]["nbcountry"],
-                                                #   "description": infos["description"]["ldescription"], "nbD": infos["description"]["nbdescription"]
-                                                  }
+                                                            "countErr" : countErr}
                       )
     else: return render(request, 'dashboard/dashboard.html', {"form": form})
 
@@ -147,3 +151,33 @@ def dropLine(err, countErr, dataframe,
 # @register.filter
 # def percentage(value, arg):
 #     return format((value*100)/arg, "%")
+
+# ** Create or Send a temp file
+# containing errors set aside
+# request{django.core.handlers.wsgi.WSGIRequest}
+# object{pandas.Dataframe} containing errors set aside from the cleaningPhase
+# return reponse{django.http.response.StreamingHttpResponse} if it is a download request
+def fileErr(request, object=None):
+    # Create a temp file
+    if(isinstance(object, pd.DataFrame)):
+        print("========== IF ==========")
+        pdb.set_trace()
+        f = NamedTemporaryFile(delete=False)
+        object.to_csv(f, sep=',')
+        request.session["errpath"] = f.name.replace("\\","/")
+    # Send the temp file when the user click on button
+    else:
+        print("========== ELSE ==========")
+        pdb.set_trace()
+        filename="err.csv"
+        file_path = request.session.get("errpath") 
+        # StreamingHttpResponse est utilisée pour diffuser une réponse en flux de Django vers le navigateur. 
+        # Ceci peut être utilisé pour générer une réponse qui prend beaucoup de temps ou qui utilise beaucoup de mémoire. 
+        # Par exemple, c’est utile pour générer de gros fichiers CSV.
+        response = StreamingHttpResponse(FileWrapper(open(file_path, 'rb')),
+                                        content_type=mimetypes.guess_type(file_path)[0])
+        response['Content-Length'] = os.path.getsize(file_path)
+        response['Content-Disposition'] = "Attachment;filename=%s" % filename
+        # f.close()
+        # os.remove(file_path)
+        return response
