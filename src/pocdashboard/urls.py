@@ -25,5 +25,6 @@ urlpatterns = [
     path('', views.login_user, name="login"),
     path('logout', views.logout_user, name='logout'),
     path("dashboard", views.dashboard, name="dashboard"),
+    path("download-file", views.fileErr, name="downloadfile"),
     path('__debug__/', include('debug_toolbar.urls')),
 ]
