@@ -25,7 +25,7 @@
       <div class="container-download">
       <a href="{% url 'downloadfile' %}"> 
          <button id="dwf"
-         {% if infos is not None %}
+         {% if infos is None %}
             disabled
          {% endif %}> 
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
@@ -38,7 +38,7 @@
    </div>
    <!-- oooooooooooooooooooooooooooooooooooooooooo Part Table oooooooooooooooooooooooooooooooooooooooooo -->
    <div class="container-infos">
-      {% if infos is not None %}
+      {% if infos is None %}
       <div class="row">
          <!-- ================================ Information ================================ -->
          <div class="column">
