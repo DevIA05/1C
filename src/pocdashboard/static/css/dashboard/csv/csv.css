@@ -1,5 +1,7 @@
 /* oooooooooooooooooooooooooooooooooooooooooo Part Button oooooooooooooooooooooooooooooooooooooooooo */
 
+/* ====================== Send file ====================== */
+
 .inputfile {
     width: 0.1px;
     height: 0.1px;
@@ -73,6 +75,59 @@
     height: 2rem;
 }
 
+/* ====================== Download file ====================== */
+
+button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+/* button:hover:enabled {
+  border: 1px solid #3cb371;
+  background-color: #277813;
+  animation: "";
+  transform: scale(1);
+} */
+
+#dwf:enabled{
+  border: 1px solid #0066cc;
+  background-color: #3cb371;
+  animation: gradientGreen 1s linear infinite, pulse 1s linear infinite both;
+}
+
+#dwf{
+  border-radius: 50%;
+  padding: 15px;
+}
+
+#dwf svg{
+  width: 3rem;
+  height: 3rem;
+  transform: rotate(180deg);
+  fill: #f1e5e6;
+}
+
+/* animation */
+
+@keyframes gradientGreen{
+  0%   { background-color: #00CC00; } 
+  25%  { background-color: #00B200; } 
+  50%  { background-color: #009900; } 
+  75%  { background-color: #007F00; } 
+  100% { background-color: #006600; }
+}
+
+@keyframes pulse{
+0%   { transform: scale(1);   }
+25%  { transform: scale(0.9); }
+50%  { transform: scale(1);   }
+75%  { transform: scale(1.1); }
+100% { transform: scale(1);   }
+}
+
+
  /* ====================== CONTAINER ====================== */
  
 .container-csv{
@@ -101,6 +156,13 @@
 .container-infos{
   width: 60%;
   /* background-color: brown;  */
+}
+
+.container-download{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
 }
 
 
