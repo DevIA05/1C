@@ -10,6 +10,9 @@ from django.http.response import HttpResponse
 from django.http import StreamingHttpResponse
 from wsgiref.util import FileWrapper
 import mimetypes
+from pocdashboard.models import *
+from django.conf import settings
+import sqlalchemy
 
 # Connexion
 def login_user(request):
@@ -48,7 +51,8 @@ def dashboard(request):
         countErr["Total"] = str(sum(countErr.values())) + " (" + str("{:.1f}".format((sum(countErr.values())*100)/infos["Nombre de ligne"])) + "%)"
         #fileErr(request, object=err)
         # df = pd.DataFrame(data={"ColumnWithé": ["éà"]})
-        fileErr(request, object=df)
+        fileErr(request, object=err)
+        addDataInDB(dataframe, lInfos)
         return render(request, 'dashboard/dashboard.html', {"form"     : form,
                                                             "infos"    : infos,
                                                             "resInfos" : resInfos,
@@ -82,6 +86,11 @@ def getInfos(dataframe, isCleaned=False):
         infos["Type de données"] = re.sub("[<>']|class", '', ltype) 
         return infos
 
+#** Count and remove unwanted line from dataframe
+# dataframe{pandas.DataFrame} data
+# return err{pandas.DataFrame} unwanted line with a comment column
+#        countErr{dict} count each error according to the condition
+#        dataframe{pandas.DataFrame} the input dataframe with unwanted elements removed
 def cleaningPhase(dataframe):
     err      = pd.DataFrame() # Met les erreurs dans un tableau
     countErr = {}             # Comptabilise les erreurs 
@@ -142,12 +151,8 @@ def dropLine(err, countErr, dataframe,
         err = pd.concat([err, errX])
     return err, countErr, dataframe
 
-
-
 # from django import template
-
 # register = template.Library()
-
 # @register.filter
 # def percentage(value, arg):
 #     return format((value*100)/arg, "%")
@@ -161,14 +166,14 @@ def fileErr(request, object=None):
     # Create a temp file
     if(isinstance(object, pd.DataFrame)):
         print("========== IF ==========")
-        pdb.set_trace()
-        f = NamedTemporaryFile(delete=False)
+        # pdb.set_trace()
+        f = NamedTemporaryFile(delete=False) 
         object.to_csv(f, sep=',')
-        request.session["errpath"] = f.name.replace("\\","/")
+        request.session["errpath"] = f.name.replace("\\","/") # save the path of the temp file 
     # Send the temp file when the user click on button
     else:
         print("========== ELSE ==========")
-        pdb.set_trace()
+        # pdb.set_trace()
         filename="err.csv"
         file_path = request.session.get("errpath") 
         # StreamingHttpResponse est utilisée pour diffuser une réponse en flux de Django vers le navigateur. 
@@ -176,8 +181,24 @@ def fileErr(request, object=None):
         # Par exemple, c’est utile pour générer de gros fichiers CSV.
         response = StreamingHttpResponse(FileWrapper(open(file_path, 'rb')),
                                         content_type=mimetypes.guess_type(file_path)[0])
-        response['Content-Length'] = os.path.getsize(file_path)
+        response['Content-Length']      = os.path.getsize(file_path)
         response['Content-Disposition'] = "Attachment;filename=%s" % filename
         # f.close()
         # os.remove(file_path)
         return response
+
+
+
+def addDataInDB(dataframe, lInfos):
+    user = settings.DATABASES['default']['USER']
+    password = settings.DATABASES['default']['PASSWORD']
+    database_name = settings.DATABASES['default']['NAME']
+    db_url = 'postgresql://{user}:{password}@localhost:5432/{database_name}'.format(user=user, 
+    password=password, database_name=database_name)
+    engine = sqlalchemy.create_engine(db_url, echo=False)
+
+    pdb.set_trace()
+
+    
+    invoiceno = dataframe[["InvoiceNo", "CustomerID", "InvoiceDate", "Country"]]
+    invoiceno.to_sql(name="invoice")
