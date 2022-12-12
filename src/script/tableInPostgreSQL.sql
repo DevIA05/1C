@@ -5,18 +5,18 @@ CREATE TABLE Product(
 );
 
 CREATE TABLE Country(
+   country_id SERIAL PRIMARY KEY,
    country_name VARCHAR(50) NOT NULL,
-   zone_name VARCHAR(50),
-   PRIMARY KEY(country_name)
+   zone_name VARCHAR(50)
 );
 
 CREATE TABLE Invoice(
    invoice_no VARCHAR(6),
-   invoice_date TIMESTAMP,
-   country_name VARCHAR(50) NOT NULL,
+   invoice_date VARCHAR(20),
+   country_id int NOT NULL,
    customer_id VARCHAR(5), 
    PRIMARY KEY(invoice_no),
-   FOREIGN KEY(country_name) REFERENCES Country(country_name)
+   FOREIGN KEY(country_id) REFERENCES Country(country_id)
 );
 
 CREATE TABLE DetailFacture(
