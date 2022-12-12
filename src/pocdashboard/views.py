@@ -41,18 +41,21 @@ def dashboard(request):
     # pdb.set_trace()
     form = CsvImportForm() 
     if request.method == "POST":
-        csv_file = request.FILES["csv_upload"].temporary_file_path()
+        csv_file = request.FILES["csv_upload"].temporary_file_path()                   # Get the sent file                              
         # dataframe = pd.read_csv(csv_file, chunksize=300000, delimiter=',', encoding= 'unicode_escape')
-        dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')
-        infos=getInfos(dataframe)
-        err, countErr, dataframe = cleaningPhase(dataframe)
+        dataframe = pd.read_csv(csv_file, delimiter=',', encoding= 'unicode_escape')  
+        infos=getInfos(dataframe)                                                      # Get information about the dataset
+        err, countErr, dataframe = cleaningPhase(dataframe)                            # Performs a dataset cleaning phase and return:
+                                                                                       #    - a dataframe containing unwanted line
+                                                                                       #    - a list count each unwanted data according to the condition 
+                                                                                       #    - a dataframe with drop unwanted data 
         resInfos, lInfos=getInfos(dataframe, isCleaned=True)
-                                                                      # Calcule le pourcentage de donnée mis de coté et ne garde que la première décimal
-        countErr["Total"] = str(sum(countErr.values())) + " (" + str("{:.1f}".format((sum(countErr.values())*100)/infos["Nombre de ligne"])) + "%)"
+        countErr["Total"] = str(sum(countErr.values())) + " (" + str("{:.1f}".format(  # Calculates the percentage of data set aside and keeps only the first decimal
+            (sum(countErr.values())*100)/infos["Nombre de ligne"])) + "%)"
         #fileErr(request, object=err)
         # df = pd.DataFrame(data={"ColumnWithé": ["éà"]})
-        fileErr(request, object=err)
-        addDataInDB(dataframe, lInfos)
+        fileErr(request, object=err)                                                   # Write in a temp file the dataframe containing unwanted line
+        addDataInDB(dataframe)                                                         # Add in the data base the data from the cleaned dataframe
         return render(request, 'dashboard/dashboard.html', {"form"     : form,
                                                             "infos"    : infos,
                                                             "resInfos" : resInfos,
@@ -189,7 +192,7 @@ def fileErr(request, object=None):
 
 
 
-def addDataInDB(dataframe, lInfos):
+def addDataInDB(dataframe):
     user = settings.DATABASES['default']['USER']
     password = settings.DATABASES['default']['PASSWORD']
     database_name = settings.DATABASES['default']['NAME']
@@ -198,7 +201,21 @@ def addDataInDB(dataframe, lInfos):
     engine = sqlalchemy.create_engine(db_url, echo=False)
 
     pdb.set_trace()
-
-    
-    invoiceno = dataframe[["InvoiceNo", "CustomerID", "InvoiceDate", "Country"]]
+  
+    # country 
+    country = dataframe["Country"].unique()
+    country.to_sql(name="country")
+  
+    # invoice
+    bool = ~dataframe.duplicated(subset = ["InvoiceNo"])        
+    invoiceno = dataframe[bool][["InvoiceNo", "InvoiceDate", "CustomerID", "Country"]]
     invoiceno.to_sql(name="invoice")
+    
+    # product
+    bool = ~dataframe.duplicated(subset = ["StockCode"])
+    product = dataframe[bool][["StockCode", "Description"]]
+    product.to_sql(name="product")
+    
+    # detailfacture
+    detailfacture = dataframe[["UnitPrice", "Quantity", "InvoiceNo", "StockCode"]]
+    detailfacture.to_sql(name="detailfacture")
