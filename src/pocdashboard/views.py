@@ -55,7 +55,7 @@ def dashboard(request):
         #fileErr(request, object=err)
         # df = pd.DataFrame(data={"ColumnWithé": ["éà"]})
         fileErr(request, object=err)                                                   # Write in a temp file the dataframe containing unwanted line
-        addDataInDB(dataframe)                                                         # Add in the data base the data from the cleaned dataframe
+        addDataInDB(dataframe)                                                       # Add in the data base the data from the cleaned dataframe
         return render(request, 'dashboard/dashboard.html', {"form"     : form,
                                                             "infos"    : infos,
                                                             "resInfos" : resInfos,
@@ -193,6 +193,7 @@ def fileErr(request, object=None):
 
 
 def addDataInDB(dataframe):
+    
     user = settings.DATABASES['default']['USER']
     password = settings.DATABASES['default']['PASSWORD']
     database_name = settings.DATABASES['default']['NAME']
@@ -200,22 +201,24 @@ def addDataInDB(dataframe):
     password=password, database_name=database_name)
     engine = sqlalchemy.create_engine(db_url, echo=False)
 
-    pdb.set_trace()
-  
     # country 
-    country = dataframe["Country"].unique()
-    country.to_sql(name="country")
+    country = pd.DataFrame(data=dataframe["Country"].unique(), columns = ["country_name"])
+    country.to_sql(name="country", con = engine, index=False, if_exists='append')
   
     # invoice
     bool = ~dataframe.duplicated(subset = ["InvoiceNo"])        
     invoiceno = dataframe[bool][["InvoiceNo", "InvoiceDate", "CustomerID", "Country"]]
-    invoiceno.to_sql(name="invoice")
+    invoiceno["CustomerID"] = invoiceno["CustomerID"].astype(str).replace('\.\d+', '', regex=True)
+    invoiceno.columns = ["invoice_no", "invoice_date", "customer_id", "country_name"]
+    invoiceno.to_sql(name="invoice", con = engine, index=False, if_exists='append')
     
     # product
     bool = ~dataframe.duplicated(subset = ["StockCode"])
     product = dataframe[bool][["StockCode", "Description"]]
-    product.to_sql(name="product")
+    product.columns = ["stock_code", "description"]
+    product.to_sql(name="product", con = engine, index=False, if_exists='append')
     
     # detailfacture
     detailfacture = dataframe[["UnitPrice", "Quantity", "InvoiceNo", "StockCode"]]
-    detailfacture.to_sql(name="detailfacture")
+    detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
+    detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
