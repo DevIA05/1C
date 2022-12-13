@@ -33,7 +33,7 @@ class Detailfacture(models.Model):
 class Invoice(models.Model):
     invoice_no = models.CharField(primary_key=True, max_length=6)
     invoice_date = models.CharField(max_length=20, blank=True, null=True)
-    country_name = models.ForeignKey(Country, models.DO_NOTHING, db_column='country_id')
+    country_name = models.ForeignKey(Country, models.DO_NOTHING, db_column='country_name')
     customer_id = models.CharField(max_length=5, blank=True, null=True)
 
     class Meta:
