@@ -1,0 +1,30 @@
+.container-main{
+    background-color: black;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.container-bgraph{
+    background-color: aqua;
+    width: 20%;
+    margin: 5px;
+}
+
+.container-callgraph{
+    background-color: bisque;
+    height: 100px;
+    margin: 5px;
+}
+
+.container-optiongraph{
+    background-color:darkkhaki;    
+    height: 100px;
+    margin: 5px;
+}
+
+.container-graphic{
+    background-color:beige;
+    width: 80%;
+    margin: 5px;
+}
