@@ -14,6 +14,7 @@ from pocdashboard.models import * #Country, Detailfacture, Invoice, Product
 from django.db.models import Count
 from django.conf import settings
 import sqlalchemy
+from django.http import JsonResponse
 
 # Connexion
 def login_user(request):
@@ -225,9 +226,20 @@ def addDataInDB(dataframe):
     detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
 
-def getDataForChart():
-    result = (Detailfacture.objects
-    .values('stock_code')
-    .annotate(dcount=Count('stock_code'))
-    .order_by()
-)
+def getDataForChart(request):
+    pdb.set_trace()
+    match request.POST.get("result"):
+        case "pa":
+            return JsonResponse({"data": ""})
+        case "pr":
+            return JsonResponse({"data": ""})
+        case "prpa":
+            return JsonResponse({"data": ""})
+        case _:
+            messages.success(request, ("Erreur de traitement"))
+            return redirect('dashboard')
+    # result = (Detailfacture.objects
+    # .values('stock_code')
+    # .annotate(dcount=Count('stock_code'))
+    # .order_by()
+    # )
