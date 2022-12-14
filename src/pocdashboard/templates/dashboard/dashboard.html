@@ -4,6 +4,7 @@
 {% block header %}
 <link rel="stylesheet" href="{% static 'css/dashboard/dashboard.css'  %}" />
 <link rel="stylesheet" href="{% static 'css/dashboard/csv/csv.css'  %}" />
+<link rel="stylesheet" href="{% static 'css/dashboard/graphic/graphic.css'  %}" />
 <script src="{% static 'js/custom-file-input.js' %}" defer></script>
 {% endblock %}
 
@@ -44,8 +45,7 @@
       {% include 'dashboard/section/csv.html' %}
     </section>
     <section>
-        <h2>Delivery Contents</h2>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem quas adipisci a accusantium eius ut voluptatibus ad impedit nulla, ipsa qui. Quasi temporibus eos commodi aliquid impedit amet, similique nulla.
+      {% include 'dashboard/section/graphic.html' %}
     </section>
   </div>
 </div>
