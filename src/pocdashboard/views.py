@@ -10,7 +10,8 @@ from django.http.response import HttpResponse
 from django.http import StreamingHttpResponse
 from wsgiref.util import FileWrapper
 import mimetypes
-from pocdashboard.models import *
+from pocdashboard.models import * #Country, Detailfacture, Invoice, Product
+from django.db.models import Count
 from django.conf import settings
 import sqlalchemy
 
@@ -65,7 +66,7 @@ def dashboard(request):
     else: return render(request, 'dashboard/dashboard.html', {"form": form})
 
 # ** Extract information about the dataset
-# dataframe{pandas.DataFrame} data
+# dataframe{pandas.DataFrame} data 
 # return infos{dict} dataframe information
 def getInfos(dataframe, isCleaned=False):
     infos = {}
@@ -90,7 +91,7 @@ def getInfos(dataframe, isCleaned=False):
         return infos
 
 #** Count and remove unwanted line from dataframe
-# dataframe{pandas.DataFrame} data
+# dataframe{pandas.DataFrame} data from input csv file
 # return err{pandas.DataFrame} unwanted line with a comment column
 #        countErr{dict} count each error according to the condition
 #        dataframe{pandas.DataFrame} the input dataframe with unwanted elements removed
@@ -191,7 +192,8 @@ def fileErr(request, object=None):
         return response
 
 
-
+# ** Add data from dataframe to database
+# dataframe{pandas.Dataframe} data from cleaningPhase()
 def addDataInDB(dataframe):
     
     user = settings.DATABASES['default']['USER']
@@ -222,3 +224,10 @@ def addDataInDB(dataframe):
     detailfacture = dataframe[["UnitPrice", "Quantity", "InvoiceNo", "StockCode"]]
     detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
+
+def getDataForChart():
+    result = (Detailfacture.objects
+    .values('stock_code')
+    .annotate(dcount=Count('stock_code'))
+    .order_by()
+)
