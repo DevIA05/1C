@@ -1,3 +1,8 @@
+# =========================== DJANGO ===========================
 from pocdashboard.models import Country
 # Quizz.objects.all().delete()
 Country.objects.all().delete()
+
+# =========================== Postgresql ===========================
+
+# TRUNCATE TABLE  invoice, detailfacture, country, product;
