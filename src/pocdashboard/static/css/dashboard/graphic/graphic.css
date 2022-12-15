@@ -27,4 +27,8 @@
     background-color:beige;
     width: 80%;
     margin: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 600px;
 }
