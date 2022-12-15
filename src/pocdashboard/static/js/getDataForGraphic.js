@@ -1,5 +1,6 @@
 const btns = document.querySelectorAll(".callG");
 const ctx = document.getElementById('myChart');
+let instance_chart;
 
 for (b of btns) {
     b.addEventListener('click', function() {
@@ -21,9 +22,26 @@ function dataRequest(name_button){
       dataType: "json",
       // ------------------- Receiving data from the view -------------------
       success: function (response) { // if send successful
-        barChart(_data = Object.values(response), 
-                 _label = Object.keys(response), 
-                 title = "TOP 10 Produit")
+        if (instance_chart != undefined) instance_chart.destroy(); 
+        switch(response["graph"]) {
+          case "pr":
+            barChart(_data = Object.values(response["data"]), 
+                     _label = Object.keys(response["data"]), 
+                     title = "TOP 10 des ventes par produit")
+            break;
+          case "pa":
+            polarAreaChart(_data = Object.values(response["data"]), 
+                           _label = Object.keys(response["data"]), 
+                           title = "Vente par pays")
+            break;
+          case "prpa":
+            // code block
+            break;
+          default:
+            pass
+        }
+
+
         console.log(response)
         console.log(typeof(response))
       },
@@ -33,79 +51,66 @@ function dataRequest(name_button){
   })
 }
 
-
-function polarAreaChart(_data, titre){
- 
-  const data = {
-    labels: [], //key
-    datasets: [{
-      label: titre,
-      data: [11, 16, 7, 3, 14], // value
-      backgroundColor: [
-        'rgb(255, 99, 132)',
-        'rgb(75, 192, 192)',
-        'rgb(255, 205, 86)',
-        'rgb(201, 203, 207)',
-        'rgb(54, 162, 235)'
-      ]
-    }]
-  };
-
-  const config = {
-    type: 'polarArea',
-    data: data,
-    options: {}
-  };
-
-  new Chart(ctx, {
-    config
-  })
-
-}
-
 function barChart(_data, _label, title){
 
-  const data = {
-    labels: _label,
-    datasets: [{
-      label: title,
-      data: _data,
-      backgroundColor: [
-        'rgba(255, 99, 132, 0.2)',
-        'rgba(255, 159, 64, 0.2)',
-        'rgba(255, 205, 86, 0.2)',
-        'rgba(75, 192, 192, 0.2)',
-        'rgba(54, 162, 235, 0.2)',
-        'rgba(153, 102, 255, 0.2)',
-        'rgba(201, 203, 207, 0.2)'
-      ],
-      borderColor: [
-        'rgb(255, 99, 132)',
-        'rgb(255, 159, 64)',
-        'rgb(255, 205, 86)',
-        'rgb(75, 192, 192)',
-        'rgb(54, 162, 235)',
-        'rgb(153, 102, 255)',
-        'rgb(201, 203, 207)'
-      ],
-      borderWidth: 1
-    }]
-};
-
-  const config = {
+  instance_chart = new Chart(ctx, {
     type: 'bar',
-    data: data,
+    data: {
+      labels: _label,
+      datasets: [{
+        label: title,
+        data: _data,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+          'rgba(255, 205, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(201, 203, 207, 0.2)'
+        ],
+        borderColor: [
+          'rgb(255, 99, 132)',
+          'rgb(255, 159, 64)',
+          'rgb(255, 205, 86)',
+          'rgb(75, 192, 192)',
+          'rgb(54, 162, 235)',
+          'rgb(153, 102, 255)',
+          'rgb(201, 203, 207)'
+        ],
+        borderWidth: 1
+      }]
+    },
     options: {
       scales: {
         y: {
           beginAtZero: true
         }
       }
-    },
-  };
+    }
+  });
+}
 
-  new Chart(ctx, {
-    config
+function polarAreaChart(_data,  _label, title){
+ 
+  instance_chart = new Chart(ctx, {
+    type: 'polarArea',
+    data: {
+      labels: _label,
+      datasets: [{
+        label: title,
+        data: _data,
+        backgroundColor: [
+          'rgb(255, 99, 132)',
+          'rgb(75, 192, 192)',
+          'rgb(255, 205, 86)',
+          'rgb(201, 203, 207)',
+          'rgb(54, 162, 235)'
+        ]
+      }]
+    },
+    options: {}
   })
 
 }
+
