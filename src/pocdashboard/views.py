@@ -15,6 +15,7 @@ from django.db.models import Count
 from django.conf import settings
 import sqlalchemy
 from django.http import JsonResponse
+from django.db import connection
 
 # Connexion
 def login_user(request):
@@ -196,7 +197,7 @@ def fileErr(request, object=None):
 # ** Add data from dataframe to database
 # dataframe{pandas.Dataframe} data from cleaningPhase()
 def addDataInDB(dataframe):
-    
+    # pdb.set_trace()
     user = settings.DATABASES['default']['USER']
     password = settings.DATABASES['default']['PASSWORD']
     database_name = settings.DATABASES['default']['NAME']
@@ -227,19 +228,36 @@ def addDataInDB(dataframe):
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
 
 def getDataForChart(request):
-    pdb.set_trace()
-    match request.POST.get("result"):
-        case "pa":
-            return JsonResponse({"data": ""})
-        case "pr":
-            return JsonResponse({"data": ""})
-        case "prpa":
-            return JsonResponse({"data": ""})
-        case _:
-            messages.success(request, ("Erreur de traitement"))
-            return redirect('dashboard')
+    if request.POST.get("result")   == "pr":
+        resultat = requeteDB("""
+                        SELECT description, nb
+                        FROM (
+                                SELECT stock_code, COUNT(*) as nb 
+                                FROM detailfacture 
+                                GROUP BY stock_code
+                            ) as cpr, product as pr
+                        WHERE cpr.stock_code = pr.stock_code 
+                        ORDER BY nb DESC
+                    """)
+        print(resultat[:10])
+        resultat = dict(resultat[:10])
+        return JsonResponse(resultat)
+    elif request.POST.get("result") == "pa":
+        return JsonResponse({"data": ""})
+    elif request.POST.get("result") == "prpa":
+        return JsonResponse({"data": ""})
+    else:
+        pass
+        # messages.success(request, ("Erreur de traitement"))
+        # return redirect('dashboard')
     # result = (Detailfacture.objects
     # .values('stock_code')
     # .annotate(dcount=Count('stock_code'))
     # .order_by()
     # )
+
+def requeteDB(sql_request):
+    with connection.cursor() as cursor:
+        cursor.execute(sql_request)
+        row = cursor.fetchall()
+    return row
