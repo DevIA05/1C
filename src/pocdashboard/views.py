@@ -228,33 +228,41 @@ def addDataInDB(dataframe):
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
 
 def getDataForChart(request):
+    
     if request.POST.get("result")   == "pr":
         resultat = requeteDB("""
-                        SELECT description, nb
-                        FROM (
-                                SELECT stock_code, COUNT(*) as nb 
-                                FROM detailfacture 
-                                GROUP BY stock_code
-                            ) as cpr, product as pr
-                        WHERE cpr.stock_code = pr.stock_code 
-                        ORDER BY nb DESC
-                    """)
-        print(resultat[:10])
+                             SELECT description, nb
+                             FROM (
+                                     SELECT stock_code, COUNT(*) as nb 
+                                     FROM detailfacture 
+                                     GROUP BY stock_code
+                                 ) as cpr, product as pr
+                             WHERE cpr.stock_code = pr.stock_code 
+                             ORDER BY nb DESC
+                            """)
         resultat = dict(resultat[:10])
-        return JsonResponse(resultat)
+        return JsonResponse({"data": resultat, "graph": "pr"})
+    
     elif request.POST.get("result") == "pa":
-        return JsonResponse({"data": ""})
+        resultat = requeteDB("""
+                             Select country_name, Count(stock_code)
+                             From (
+                             	Select stock_code, country_name
+                             	From detailfacture as df, (
+                             		Select invoice_no, country_name From invoice
+                             		) as i
+                             	Where df.invoice_no = i.invoice_no
+                             ) as pp
+                             Group By country_name
+                            """)
+        resultat = dict(resultat[:10])
+        return JsonResponse({"data": resultat, "graph": "pa"})
+    
     elif request.POST.get("result") == "prpa":
         return JsonResponse({"data": ""})
     else:
         pass
-        # messages.success(request, ("Erreur de traitement"))
-        # return redirect('dashboard')
-    # result = (Detailfacture.objects
-    # .values('stock_code')
-    # .annotate(dcount=Count('stock_code'))
-    # .order_by()
-    # )
+
 
 def requeteDB(sql_request):
     with connection.cursor() as cursor:
