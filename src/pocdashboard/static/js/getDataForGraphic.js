@@ -1,5 +1,5 @@
 const btns = document.querySelectorAll(".callG");
-const ctx = document.getElementById('myChart');
+const ctx = document.getElementById('mainChart');
 let instance_chart;
 
 for (b of btns) {
@@ -22,6 +22,7 @@ function dataRequest(name_button){
       dataType: "json",
       // ------------------- Receiving data from the view -------------------
       success: function (response) { // if send successful
+        // const newData = listoflist_to_dict(response["data"])
         if (instance_chart != undefined) instance_chart.destroy(); 
         switch(response["graph"]) {
           case "pr":
@@ -35,7 +36,9 @@ function dataRequest(name_button){
                            title = "Vente par pays")
             break;
           case "prpa":
-            // code block
+            polarAreaChart(_data = Object.values(response["dataPa"]), 
+                           _label = Object.keys(response["dataPa"]), 
+                           title = "test")
             break;
           default:
             pass
@@ -114,3 +117,13 @@ function polarAreaChart(_data,  _label, title){
 
 }
 
+function getTop(ll, x){}
+function getFlop(ll, x){}
+
+function listoflist_to_dict(ll){
+  return(ll.map(x => {
+    let res = {}
+    res[x[0]] = x[1]
+    return(res);
+  }))
+}
