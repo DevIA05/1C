@@ -230,36 +230,21 @@ def addDataInDB(dataframe):
 def getDataForChart(request):
     
     if request.POST.get("result")   == "pr":
-        resultat = requeteDB("""
-                             SELECT description, nb
-                             FROM (
-                                     SELECT stock_code, COUNT(*) as nb 
-                                     FROM detailfacture 
-                                     GROUP BY stock_code
-                                 ) as cpr, product as pr
-                             WHERE cpr.stock_code = pr.stock_code 
-                             ORDER BY nb DESC
-                            """)
+        resultat = requeteDB(venteParProduit())
         resultat = dict(resultat[:10])
         return JsonResponse({"data": resultat, "graph": "pr"})
     
     elif request.POST.get("result") == "pa":
-        resultat = requeteDB("""
-                             Select country_name, Count(stock_code)
-                             From (
-                             	Select stock_code, country_name
-                             	From detailfacture as df, (
-                             		Select invoice_no, country_name From invoice
-                             		) as i
-                             	Where df.invoice_no = i.invoice_no
-                             ) as pp
-                             Group By country_name
-                            """)
+        resultat = requeteDB(venteParPays())
         resultat = dict(resultat[:10])
         return JsonResponse({"data": resultat, "graph": "pa"})
     
     elif request.POST.get("result") == "prpa":
-        return JsonResponse({"data": ""})
+        res1 = requeteDB(venteParProduit())
+        res2 = requeteDB(venteParPays())
+        res1 = dict(res1[:10])
+        res2 = dict(res2[:10])
+        return JsonResponse({"dataPr": res1, "dataPa": res2, "graph": "prpa"})
     else:
         pass
 
@@ -269,3 +254,31 @@ def requeteDB(sql_request):
         cursor.execute(sql_request)
         row = cursor.fetchall()
     return row
+
+# ================== QUERIES ==================
+
+def venteParProduit():
+    return("""
+        SELECT description, nb
+        FROM (
+                SELECT stock_code, COUNT(*) as nb 
+                FROM detailfacture 
+                GROUP BY stock_code
+            ) as cpr, product as pr
+        WHERE cpr.stock_code = pr.stock_code 
+        ORDER BY nb DESC
+            """)
+
+def venteParPays():
+    return("""
+        Select country_name, Count(stock_code)
+        From (
+        	Select stock_code, country_name
+        	From detailfacture as df, 
+            (
+        		Select invoice_no, country_name From invoice
+        	) as i
+        	Where df.invoice_no = i.invoice_no
+        ) as pp
+        Group By country_name
+            """)
