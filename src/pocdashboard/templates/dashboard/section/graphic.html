@@ -1,8 +1,7 @@
 {% load static %}
 <div class="container-main">
-    <div class="container-bgraph">
-        <div class="container-callgraph">
-            <p>génère les graphiques </p>
+      <div class="container-bgraph">
+          <div class="container-callgraph">
             <button class="callG" name="pr">
                 <img src="{% static 'image/b1.png'  %}"
                      alt="Vente par produit">
@@ -14,15 +13,19 @@
                 <img src="{% static 'image/b3.png'  %}"
                      alt="Vente par produit et par pays">
             </button>
-        </div> 
-        <div class="container-optiongraph">
-            <p> détail grpahique </p>
+          </div> 
+          <div class="container-optiongraph">
+            <p> option graph </p>
+          </div>
+      </div>
+      <div class="container-graphic">
+        <div class="main-g">
+            <canvas id="mainChart"></canvas>
         </div>
-    </div>
-    <div class="container-graphic">
-        <canvas id="myChart"></canvas>
-    </div>
-</div>
+        <div class="detail-g">
+            <canvas id="detailChart"></canvas>
+      </div>
+  </div>
 
 <script
     src="https://code.jquery.com/jquery-3.6.1.min.js"
