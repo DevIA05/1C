@@ -45,7 +45,9 @@
       {% include 'dashboard/section/csv.html' %}
     </section>
     <section>
-      {% include 'dashboard/section/graphic.html' %}
+      {#{% if infos is not None %} #}
+        {% include 'dashboard/section/graphic.html' %}
+      {#{% endif %}#}
     </section>
   </div>
 </div>
