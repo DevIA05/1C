@@ -227,31 +227,27 @@ def addDataInDB(dataframe):
     detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
 
+
 def getDataForChart(request):
-    
-    if request.POST.get("result")   == "pr":
-        resultat = requeteDB(venteParProduit())
-        resultat = dict(resultat[:10])
-        return JsonResponse({"data": resultat, "graph": "pr"})
-    
-    elif request.POST.get("result") == "pa":
-        resultat = requeteDB(venteParPays())
-        resultat = dict(resultat[:10])
-        return JsonResponse({"data": resultat, "graph": "pa"})
-    
-    elif request.POST.get("result") == "prpa":
-        res1 = requeteDB(venteParProduit())
-        res2 = requeteDB(venteParPays())
-        res1 = dict(res1[:10])
-        res2 = dict(res2[:10])
-        return JsonResponse({"dataPr": res1, "dataPa": res2, "graph": "prpa"})
+    if request.POST.get("result[claim]")   == "pr":
+        resultat = dict(requeteDB(venteParProduit())[0:10])
+        claim = "pr"
+    elif request.POST.get("result[claim]") == "pa":
+        resultat = dict(requeteDB(venteParPays())[0:10])
+        claim = "pa"
+    elif request.POST.get("result[claim]") == "prpa":
+        resultat = dict(requeteDB(detailProduit(request.POST.get("result[data]")))[0:5])
+        claim = "prpa"
+    elif request.POST.get("result[claim]") == "papr":
+        resultat = dict(requeteDB(detailPays(request.POST.get("result[data]")))[0:5])
+        claim = "papr"
     else:
         pass
-
-
+    return JsonResponse({"data": resultat, "graph": claim})
+    
 def requeteDB(sql_request):
     with connection.cursor() as cursor:
-        cursor.execute(sql_request)
+        cursor.execute(*sql_request)
         row = cursor.fetchall()
     return row
 
@@ -267,18 +263,52 @@ def venteParProduit():
             ) as cpr, product as pr
         WHERE cpr.stock_code = pr.stock_code 
         ORDER BY nb DESC
-            """)
+            """,)
 
 def venteParPays():
     return("""
-        Select country_name, Count(stock_code)
-        From (
-        	Select stock_code, country_name
-        	From detailfacture as df, 
+        SELECT country_name, Count(stock_code)
+        FROM (
+        	SELECT stock_code, country_name
+        	FROM detailfacture as df, 
             (
-        		Select invoice_no, country_name From invoice
+        		SELECT invoice_no, country_name FROM invoice
         	) as i
-        	Where df.invoice_no = i.invoice_no
+        	WHERE df.invoice_no = i.invoice_no
         ) as pp
-        Group By country_name
-            """)
+        GROUP BY country_name
+            """,)
+
+def detailProduit(produit):
+    return('''
+           SELECT i.country_name, SUM(iq.quantity) as total
+           FROM invoice as i, (
+               SELECT invoice_no, quantity
+               FROM detailfacture as df, (
+                   SELECT stock_code
+                   FROM product
+                   WHERE description = %s
+	           ) as sc
+               WHERE sc.stock_code = df.stock_code
+           ) as iq
+           WHERE iq.invoice_no = i.invoice_no
+           GROUP BY country_name
+           ORDER BY total DESC
+           ''', [produit])
+    
+def detailPays(pays):
+    return('''
+           Select description, SUM(quantity) as total
+           From product as p, (
+               Select df.stock_code, df.quantity
+               From detailfacture as df, (
+                   Select i.country_name, i.invoice_no
+                   From invoice as i
+                   Where country_name = %s
+                ) as ci
+                Where ci.invoice_no = df.invoice_no
+            ) as sq
+            Where sq.stock_code = p.stock_code
+            Group By description
+            ORDER BY total DESC
+           ''', [pays])

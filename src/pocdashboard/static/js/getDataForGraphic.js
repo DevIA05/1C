@@ -1,15 +1,20 @@
 const btns = document.querySelectorAll(".callG");
 const ctx = document.getElementById('mainChart');
-let instance_chart;
+const cty = document.getElementById('detailChart');
+let instance_main_chart;
+let instance_detail_chart;
+let claim = ""
+let value_from_click = ""
+let _labels;
 
 for (b of btns) {
     b.addEventListener('click', function() {
-      dataRequest(this.name)
+      dataRequest({"claim": this.name})
     });
 }
 
 
-function dataRequest(name_button){
+function dataRequest(_claim){
   const csrf  = $('input[name="csrfmiddlewaretoken"]').val()   // collect token
   // ------------------- Send data to view -------------------
   $.ajax({
@@ -17,36 +22,48 @@ function dataRequest(name_button){
       url: 'getDataForChart', // Name of the django view that will retrieve the data
       data: {
           csrfmiddlewaretoken : csrf,
-          "result": name_button,       // data to send
+          "result": _claim,       // data to send
       },
       dataType: "json",
       // ------------------- Receiving data from the view -------------------
-      success: function (response) { // if send successful
-        // const newData = listoflist_to_dict(response["data"])
-        if (instance_chart != undefined) instance_chart.destroy(); 
+      success: function (response) { // if send successful 
         switch(response["graph"]) {
+
           case "pr":
+            destroyChart(instance_main_chart, instance_detail_chart)
             barChart(_data = Object.values(response["data"]), 
                      _label = Object.keys(response["data"]), 
-                     title = "TOP 10 des ventes par produit")
+                     title = "TOP 10 des ventes par produit",
+                     graph = ctx)
             break;
+
           case "pa":
+            destroyChart(instance_main_chart, instance_detail_chart)
             polarAreaChart(_data = Object.values(response["data"]), 
                            _label = Object.keys(response["data"]), 
-                           title = "Vente par pays")
+                           title = "TOP 10 des ventes par pays",
+                           graph = ctx)
             break;
+
           case "prpa":
-            polarAreaChart(_data = Object.values(response["dataPa"]), 
-                           _label = Object.keys(response["dataPa"]), 
-                           title = "test")
+            if (instance_detail_chart != undefined){ instance_detail_chart.destroy() }
+            polarAreaChart(_data = Object.values(response["data"]),
+                           _label = Object.keys(response["data"]), 
+                           title = "Quantité du produit vendu dans les pays",
+                           graph = cty)
             break;
+
+          case "papr":
+            if (instance_detail_chart != undefined){ instance_detail_chart.destroy() }
+            barChart(_data = Object.values(response["data"]),
+                     _label = Object.keys(response["data"]), 
+                     title = "Quantité des produits vendu dans le pays",
+                     graph = cty)
+            break;
+
           default:
             pass
         }
-
-
-        console.log(response)
-        console.log(typeof(response))
       },
       failure: function () {
           alert("failure");
@@ -54,49 +71,83 @@ function dataRequest(name_button){
   })
 }
 
-function barChart(_data, _label, title){
+function clickHandler(click){
+  const points = instance_main_chart.getElementsAtEventForMode(click, 'nearest', {intersect: true}, true);
+  if(points.length){
+    const firstPoint = points[0];
+    const value = _labels[firstPoint.index] //instance_main_chart.data.labels[firstPoint.index];
+    dataRequest({"data": value, "claim": claim})
+  }
+}
 
-  instance_chart = new Chart(ctx, {
-    type: 'bar',
+function barChart(_data, _label, title, graph){
+
+  config_bar_chart = {
+    type: "bar",
     data: {
-      labels: _label,
-      datasets: [{
-        label: title,
-        data: _data,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(255, 159, 64, 0.2)',
-          'rgba(255, 205, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(201, 203, 207, 0.2)'
+        labels: _label.map(x => {return x.split(" ");}),
+        datasets: [
+            {
+                label: title,
+                data: _data,
+                backgroundColor: [
+                    "rgba(255, 99, 132, 0.2)",
+                    "rgba(255, 159, 64, 0.2)",
+                    "rgba(255, 205, 86, 0.2)",
+                    "rgba(75, 192, 192, 0.2)",
+                    "rgba(54, 162, 235, 0.2)",
+                    "rgba(153, 102, 255, 0.2)",
+                    "rgba(201, 203, 207, 0.2)",
+                ],
+                borderColor: [
+                    "rgb(255, 99, 132)",
+                    "rgb(255, 159, 64)",
+                    "rgb(255, 205, 86)",
+                    "rgb(75, 192, 192)",
+                    "rgb(54, 162, 235)",
+                    "rgb(153, 102, 255)",
+                    "rgb(201, 203, 207)",
+                ],
+                borderWidth: 1,
+            }
         ],
-        borderColor: [
-          'rgb(255, 99, 132)',
-          'rgb(255, 159, 64)',
-          'rgb(255, 205, 86)',
-          'rgb(75, 192, 192)',
-          'rgb(54, 162, 235)',
-          'rgb(153, 102, 255)',
-          'rgb(201, 203, 207)'
-        ],
-        borderWidth: 1
-      }]
     },
     options: {
       scales: {
-        y: {
-          beginAtZero: true
+        y: {beginAtZero: true},
+        x: { 
+          ticks: {
+            stepSize: 1,
+            autoSkip: false,
+            font: { size: 9, }
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            title: (context) => {
+              // console.log(context[0].label);
+              return context[0].label.replaceAll(",", " ")
+            }
+          }
         }
       }
-    }
-  });
+    },
 }
 
-function polarAreaChart(_data,  _label, title){
+  if(graph.id == "mainChart"){
+    instance_main_chart = new Chart(graph, config_bar_chart);
+    claim = "prpa"
+    _labels = _label
+    graph.onclick = clickHandler;
+  } else{ instance_detail_chart = new Chart(graph, config_bar_chart); }
+
+}
+
+function polarAreaChart(_data,  _label, title, graph){
  
-  instance_chart = new Chart(ctx, {
+  config_polar_chart = {
     type: 'polarArea',
     data: {
       labels: _label,
@@ -112,18 +163,23 @@ function polarAreaChart(_data,  _label, title){
         ]
       }]
     },
-    options: {}
-  })
+    options: {
+      scale: {
+        ticks: { z: 1 }
+      }
+    }  
+  }
+
+  if(graph.id == "mainChart"){
+    instance_main_chart = new Chart(graph, config_polar_chart);
+    claim = "papr"
+    graph.onclick = clickHandler;
+  } else{ instance_detail_chart = new Chart(graph, config_polar_chart); }
 
 }
 
-function getTop(ll, x){}
-function getFlop(ll, x){}
-
-function listoflist_to_dict(ll){
-  return(ll.map(x => {
-    let res = {}
-    res[x[0]] = x[1]
-    return(res);
-  }))
+function destroyChart(mc, dc){
+  if (mc != undefined){ mc.destroy() }
+  if (dc != undefined){ dc.destroy() }
 }
+
