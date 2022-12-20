@@ -207,29 +207,46 @@ def addDataInDB(dataframe):
     password=password, database_name=database_name)
     engine = sqlalchemy.create_engine(db_url, echo=False)
     
+    pdb.set_trace()
     # country 
     country = pd.DataFrame(data=dataframe["Country"].unique(), columns = ["country_name"])
-    country.to_sql(name="country", con = engine, index=False, if_exists='append')
-    # pdb.set_trace()
-    # Country.objects.exclude(country_name=tempCountry.objects.all()).values_list('country_name', flat=True)
+    country["zone_name"] = None
+    country.to_sql(name="tempcountry", con = engine, index=False, if_exists='replace')
+    
+    res = requeteDB(setDifference(table="country", temptable="tempCountry"))
+    resdf = pd.DataFrame(list(map(list, res)), columns=["country_name"])
+    resdf.to_sql(name="country", con = engine, index=False, if_exists='append')
+
   
     # invoice
     bool = ~dataframe.duplicated(subset = ["InvoiceNo"])        
     invoiceno = dataframe[bool][["InvoiceNo", "InvoiceDate", "CustomerID", "Country"]]
     invoiceno["CustomerID"] = invoiceno["CustomerID"].astype(str).replace('\.\d+', '', regex=True)
     invoiceno.columns = ["invoice_no", "invoice_date", "customer_id", "country_name"]
-    invoiceno.to_sql(name="invoice", con = engine, index=False, if_exists='append')
+    invoiceno.to_sql(name="tempinvoice", con = engine, index=False, if_exists='replace')
+    
+    res = requeteDB(setDifference(table="invoice", temptable="tempinvoice"))
+    resdf = pd.DataFrame(list(map(list, res)), columns=["invoice_no", "invoice_date", "customer_id", "country_name"])
+    resdf.to_sql(name="invoice", con = engine, index=False, if_exists='append')
     
     # product
     bool = ~dataframe.duplicated(subset = ["StockCode"])
     product = dataframe[bool][["StockCode", "Description"]]
     product.columns = ["stock_code", "description"]
-    product.to_sql(name="product", con = engine, index=False, if_exists='append')
+    product.to_sql(name="tempproduct", con = engine, index=False, if_exists='replace')
+    
+    res = requeteDB(setDifference(table="product", temptable="tempproduct"))
+    resdf = pd.DataFrame(list(map(list, res)), columns=["stock_code", "description"])
+    resdf.to_sql(name="product", con = engine, index=False, if_exists='append')
     
     # detailfacture
     detailfacture = dataframe[["UnitPrice", "Quantity", "InvoiceNo", "StockCode"]]
     detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
-    detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
+    detailfacture.to_sql(name="tempdetailfacture", con = engine, index=False, if_exists='replace')
+    
+    res = requeteDB(setDifference(table="detailfacture", temptable="tempdetailfacture"))
+    resdf = pd.DataFrame(list(map(list, res)), columns=["unit_price", "quantity", "invoice_no", "stock_code"])
+    resdf.to_sql(name="product", con = engine, index=False, if_exists='append')
 
 #** Switch the claim send by the client to the corresponding 
 #** functions to get the desired data from the database 
@@ -274,12 +291,19 @@ def getDataForChart(request):
     
 # ================== QUERIES ==================
 
+#** Connection with the database
+# sql_request{tuple} sql query and and these parameters
+# return row{queryset} sql query result data
 def requeteDB(sql_request):
     with connection.cursor() as cursor:
         cursor.execute(*sql_request)
         row = cursor.fetchall()
     return row
 
+# ** Quantity of each product sold
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters
 def venteParProduit(choice, limit):
     return("""
         SELECT description, nb
@@ -293,6 +317,10 @@ def venteParProduit(choice, limit):
         LIMIT %s
             """.format(choice), [limit])
 
+# ** Quantity sold in each country
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters
 def venteParPays(choice, limit):
     return('''
             SELECT country_name, Sum(quantity) as nb
@@ -322,6 +350,11 @@ def venteParPays(choice, limit):
     #     LIMIT %s
     #         """.format(choice),[limit])
 
+# ** Quantity of product sold in each country
+# produit{str} product name (product.description)
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters
 def detailProduit(produit, choice, limit):
     return('''
            SELECT i.country_name, SUM(iq.quantity) as total
@@ -339,7 +372,12 @@ def detailProduit(produit, choice, limit):
            ORDER BY total {0}
            LIMIT %s
            '''.format(choice), [produit, limit])
-    
+
+# ** Quantity of each product sold in this country
+# pays{str} country name (product.description)
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters    
 def detailPays(pays, choice, limit):
     return('''
            Select description, SUM(quantity) as total
@@ -357,7 +395,9 @@ def detailPays(pays, choice, limit):
             ORDER BY total {0} 
             LIMIT %s
            '''.format(choice), [pays, limit])
-    
+
+# ** Quantity sold per month
+# return {tuple} sql query and these parameters
 def venteDesProduitParDate():
     return('''
                 Select to_char(_date, 'MM/YYYY'), nb
@@ -372,6 +412,11 @@ def venteDesProduitParDate():
                 ) as tab
            ''', )
 
+# **Quantity of each product sold in this month (_date)
+# _date{str} date (mm/yyyy)
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters    
 def detailProduitParDate(_date, choice, limit):
     return('''
                 Select description, Sum(quantity) as nb
@@ -390,6 +435,11 @@ def detailProduitParDate(_date, choice, limit):
                 Limit %s
            '''.format(choice), [_date, limit])
 
+# ** quantity sold in each country in this month (_date)
+# _date{str} date (mm/yyyy)
+# choice{str} 'DESC' or 'ASC'
+# limit{str|int} number of rows that we keep from the query
+# return {tuple} sql query and these parameters    
 def detailPaysParDate(_date, choice, limit):
     return('''
                 Select country_name, Sum(quantity) as nb
@@ -404,3 +454,16 @@ def detailPaysParDate(_date, choice, limit):
                 Order By nb {0} 
                 Limit %s
            '''.format(choice), [_date, limit])
+
+#** Set difference table \ temptable
+# table{str} table name
+# temptable{str} temp table name
+# return {tuple} sql query and these parameters 
+def setDifference(table, temptable): # table nor column names as parameter arguments
+    return('''
+                SELECT * FROM {1}         
+                EXCEPT 
+                SELECT * FROM {0}
+           '''.format(table, temptable), )
+    
+    
