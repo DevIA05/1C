@@ -6,7 +6,7 @@ import pdb; #pdb.set_trace()
 from pocdashboard.forms import CsvImportForm
 import pandas as pd
 import io, time, re, os
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.http import StreamingHttpResponse
 from wsgiref.util import FileWrapper
 import mimetypes
@@ -14,6 +14,7 @@ from pocdashboard.models import * #Country, Detailfacture, Invoice, Product
 from django.db.models import Count
 from django.conf import settings
 import sqlalchemy
+from sqlalchemy.sql import text
 from django.http import JsonResponse
 from django.db import connection
 
@@ -135,11 +136,12 @@ def cleaningPhase(dataframe):
     err, countErr, dataframe = dropLine(err, countErr, dataframe,
                                         booldf=~dataframe["InvoiceNo"].str.match("^\d{6}$"),
                                         comment= "InvoiceNo ne correspond pas au motif", name = "InvoiceNo")
+    # Description
+    dataframe["Description"].replace('\s*$', '', regex=True, inplace=True) # remove white space at the end of string
        
     return err, countErr, dataframe
     
-# ** Set aside duplicates 
-# ** relative to columns InvoiceNo and StockCode
+# ** Set aside unwanted data 
 # err{pandas.Dataframe} stores rows set aside
 # countErr{dict} stores the number of rows matched by a filter 
 # dataframe{pandas.Dataframe} data
@@ -163,22 +165,22 @@ def dropLine(err, countErr, dataframe,
 # def percentage(value, arg):
 #     return format((value*100)/arg, "%")
 
-# ** Create or Send a temp file
-# containing errors set aside
+# ** Send a temp file containing data set aside when the
+#**  customer clicks the downloaded button
 # request{django.core.handlers.wsgi.WSGIRequest}
 # object{pandas.Dataframe} containing errors set aside from the cleaningPhase
+#                            if it is none it means that the client is making a 
+#                            request to download the data set aside                        
 # return reponse{django.http.response.StreamingHttpResponse} if it is a download request
 def fileErr(request, object=None):
     # Create a temp file
     if(isinstance(object, pd.DataFrame)):
-        print("========== IF ==========")
         # pdb.set_trace()
         f = NamedTemporaryFile(delete=False) 
         object.to_csv(f, sep=',')
         request.session["errpath"] = f.name.replace("\\","/") # save the path of the temp file 
     # Send the temp file when the user click on button
     else:
-        print("========== ELSE ==========")
         # pdb.set_trace()
         filename="err.csv"
         file_path = request.session.get("errpath") 
@@ -204,10 +206,12 @@ def addDataInDB(dataframe):
     db_url = 'postgresql://{user}:{password}@localhost:5432/{database_name}'.format(user=user, 
     password=password, database_name=database_name)
     engine = sqlalchemy.create_engine(db_url, echo=False)
-
+    
     # country 
     country = pd.DataFrame(data=dataframe["Country"].unique(), columns = ["country_name"])
     country.to_sql(name="country", con = engine, index=False, if_exists='append')
+    # pdb.set_trace()
+    # Country.objects.exclude(country_name=tempCountry.objects.all()).values_list('country_name', flat=True)
   
     # invoice
     bool = ~dataframe.duplicated(subset = ["InvoiceNo"])        
@@ -227,59 +231,98 @@ def addDataInDB(dataframe):
     detailfacture.columns = ["unit_price", "quantity", "invoice_no", "stock_code"]
     detailfacture.to_sql(name="detailfacture", con = engine, index=False, if_exists='append')
 
-
+#** Switch the claim send by the client to the corresponding 
+#** functions to get the desired data from the database 
 def getDataForChart(request):
-    if request.POST.get("result[claim]")   == "pr":
-        resultat = dict(requeteDB(venteParProduit())[0:10])
-        claim = "pr"
-    elif request.POST.get("result[claim]") == "pa":
-        resultat = dict(requeteDB(venteParPays())[0:10])
-        claim = "pa"
-    elif request.POST.get("result[claim]") == "prpa":
-        resultat = dict(requeteDB(detailProduit(request.POST.get("result[data]")))[0:5])
-        claim = "prpa"
-    elif request.POST.get("result[claim]") == "papr":
-        resultat = dict(requeteDB(detailPays(request.POST.get("result[data]")))[0:5])
-        claim = "papr"
-    else:
-        pass
-    return JsonResponse({"data": resultat, "graph": claim})
     
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~ Graphe principal ~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    if request.POST.get("result[claim]")   == "pr":
+        resultat = dict(requeteDB(venteParProduit(request.POST.get("result[choice]"), 
+                                                  request.POST.get("result[limit]"))))
+    elif request.POST.get("result[claim]") == "pa":
+        resultat = dict(requeteDB(venteParPays(request.POST.get("result[choice]"), 
+                                               request.POST.get("result[limit]"))))
+    elif request.POST.get("result[claim]") == "_date":
+        resultat = dict(requeteDB(venteDesProduitParDate()))
+        
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~ Graphe de detail ~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+    elif request.POST.get("result[claim]") == "prpa":
+        resultat = dict(requeteDB(detailProduit(request.POST.get('result[data]'), 
+                                                request.POST.get("result[choice]"), 
+                                                request.POST.get("result[limit]"))))
+    elif request.POST.get("result[claim]") == "papr":
+        resultat = dict(requeteDB(detailPays(request.POST.get('result[data]'), 
+                                             request.POST.get("result[choice]"), 
+                                             request.POST.get("result[limit]"))))
+    elif request.POST.get("result[claim]") == "dprpa":
+        resultat1 = dict(requeteDB(detailProduitParDate(request.POST.get('result[data]'),
+                                                       request.POST.get("result[choice]"),
+                                                       request.POST.get("result[limit]"))))
+        resultat2 = dict(requeteDB(detailPaysParDate(request.POST.get('result[data]'),
+                                                     request.POST.get("result[choice]"),
+                                                     request.POST.get("result[limit]"))))
+        resultat = [resultat1, resultat2]
+    else:
+        resultat = None
+    return JsonResponse({"data": resultat, "claim": request.POST.get("result[claim]")})
+    
+# ================== QUERIES ==================
+
 def requeteDB(sql_request):
     with connection.cursor() as cursor:
         cursor.execute(*sql_request)
         row = cursor.fetchall()
     return row
 
-# ================== QUERIES ==================
-
-def venteParProduit():
+def venteParProduit(choice, limit):
     return("""
         SELECT description, nb
         FROM (
-                SELECT stock_code, COUNT(*) as nb 
+                SELECT stock_code, SUM(quantity) as nb
                 FROM detailfacture 
                 GROUP BY stock_code
             ) as cpr, product as pr
         WHERE cpr.stock_code = pr.stock_code 
-        ORDER BY nb DESC
-            """,)
+        ORDER BY nb {0}
+        LIMIT %s
+            """.format(choice), [limit])
 
-def venteParPays():
-    return("""
-        SELECT country_name, Count(stock_code)
-        FROM (
-        	SELECT stock_code, country_name
+def venteParPays(choice, limit):
+    return('''
+            SELECT country_name, Sum(quantity) as nb
         	FROM detailfacture as df, 
             (
-        		SELECT invoice_no, country_name FROM invoice
+        		SELECT invoice_no, country_name 
+                FROM invoice
         	) as i
         	WHERE df.invoice_no = i.invoice_no
-        ) as pp
-        GROUP BY country_name
-            """,)
+			Group By country_name
+            Order by nb {0}
+            Limit %s
+           '''.format(choice),[limit])
+    # return("""
+    #     SELECT country_name, Count(stock_code) as nb
+    #     FROM (
+    #     	SELECT stock_code, country_name
+    #     	FROM detailfacture as df, 
+    #         (
+    #     		SELECT invoice_no, country_name 
+    #             FROM invoice
+    #     	) as i
+    #     	WHERE df.invoice_no = i.invoice_no
+    #     ) as pp
+    #     GROUP BY country_name
+    #     ORDER BY nb {0}
+    #     LIMIT %s
+    #         """.format(choice),[limit])
 
-def detailProduit(produit):
+def detailProduit(produit, choice, limit):
     return('''
            SELECT i.country_name, SUM(iq.quantity) as total
            FROM invoice as i, (
@@ -293,10 +336,11 @@ def detailProduit(produit):
            ) as iq
            WHERE iq.invoice_no = i.invoice_no
            GROUP BY country_name
-           ORDER BY total DESC
-           ''', [produit])
+           ORDER BY total {0}
+           LIMIT %s
+           '''.format(choice), [produit, limit])
     
-def detailPays(pays):
+def detailPays(pays, choice, limit):
     return('''
            Select description, SUM(quantity) as total
            From product as p, (
@@ -310,5 +354,53 @@ def detailPays(pays):
             ) as sq
             Where sq.stock_code = p.stock_code
             Group By description
-            ORDER BY total DESC
-           ''', [pays])
+            ORDER BY total {0} 
+            LIMIT %s
+           '''.format(choice), [pays, limit])
+    
+def venteDesProduitParDate():
+    return('''
+                Select to_char(_date, 'MM/YYYY'), nb
+                From (
+	                Select _date, Sum(quantity ) as nb
+	                From detailfacture as df, (
+		                Select invoice_no, TO_DATE(to_char(TO_DATE(invoice_date, 'MM/DD/YYYY'), 'MM/YYYY'), 'MM/YYYY') as _date
+		                From invoice) as invd
+	                Where df.invoice_no = invd.invoice_no
+	                Group By _date
+	                Order By _date
+                ) as tab
+           ''', )
+
+def detailProduitParDate(_date, choice, limit):
+    return('''
+                Select description, Sum(quantity) as nb
+                From product as p, (
+	                Select stock_code, quantity
+	                From detailfacture as df, (
+		                Select invoice_no
+		                From(
+			                Select invoice_no,  to_char(TO_DATE(invoice_date, 'MM/DD/YYYY'), 'MM/YYYY') as _date
+			                From invoice) as invd
+		                Where invd._date = %s ) as subt
+	                Where subt.invoice_no = df.invoice_no) as stq
+                Where stq.stock_code = p.stock_code
+                Group By description
+                Order By nb {0}
+                Limit %s
+           '''.format(choice), [_date, limit])
+
+def detailPaysParDate(_date, choice, limit):
+    return('''
+                Select country_name, Sum(quantity) as nb
+                From detailfacture as df, (
+                    Select invoice_no, country_name
+                    From(
+                        Select invoice_no, country_name, to_char(TO_DATE(invoice_date, 'MM/DD/YYYY'), 'MM/YYYY') as _date
+                        From invoice) as invd
+                    Where invd._date = %s)  as subt
+                Where subt.invoice_no = df.invoice_no
+                Group By country_name
+                Order By nb {0} 
+                Limit %s
+           '''.format(choice), [_date, limit])

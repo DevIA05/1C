@@ -17,3 +17,7 @@ ORDER BY table_name;
 -- "django_session",
 -- "invoice",
 -- "product"
+-- "tempcountry"
+-- "tempdetailfacture"
+-- "tempinvoice"
+-- "tempproduct"

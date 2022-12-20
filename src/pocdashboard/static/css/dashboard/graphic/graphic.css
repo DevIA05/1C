@@ -22,18 +22,21 @@
 }
 
 .container-optiongraph{
-    /* background-color:darkkhaki;   */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
 }
 
 .container-graphic{
     /* background-color:beige; */
     display: flex;
-    align-items: center;
+    /* align-items: center; */
     justify-content: center;
 }
 
 .container-graphic > *{
-    max-height: 600px;
+    /* max-height: 600px; */
 }
 
 
@@ -41,7 +44,7 @@
   /* background-color: orange; */
   width: 60%;
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
   padding: 50px;
 }
@@ -50,7 +53,6 @@
   /* background-color: green; */
   width: 40%;
   position:relative;
-  right: 60px
 }
 
 .callG{
@@ -60,4 +62,13 @@
 
 .callG:hover{
   transform: scale(1.1)
+}
+
+.container-optiongraph #ph{
+  width: 85px;
+  text-align: center
+}
+
+#detailChart{
+  max-width: 500px;
 }

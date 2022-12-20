@@ -12,4 +12,8 @@ DROP TABLE
 "django_migrations",
 "django_session",
 "invoice",
-"product"
+"product",
+"tempcountry",
+"tempdetailfacture",
+"tempinvoice",
+"tempproduct"

@@ -1,0 +1,36 @@
+#container-modal {
+    display: none;
+
+}
+
+#container-img{
+    position: fixed; /* Stay in place */
+    z-index: 1; /*Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0, 0, 0, 0.75); /* Black w/ opacity */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#img1{
+    position: absolute;
+}
+
+#img2{
+    position: absolute;
+    /* animation: rotation 2s infinite linear; */
+    animation: pause;
+}
+
+@keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(359deg);
+    }
+  }
