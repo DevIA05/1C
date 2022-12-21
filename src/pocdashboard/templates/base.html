@@ -27,6 +27,16 @@
             </nav>
         </div>
       </header>
+
+      {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-warning alert-dismissible fade show" role="alert" style="position: fixed !important; margin-top: -20px !important; width: 50% !important; left: 25% !important; z-index: 99 !important;">
+         <span style="font-size: 1.3rem;"> {{ message }} </span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="z-index: 100 !important;"></button>
+      </div>
+      {% endfor %}
+      {% endif %}
+
       {%block content%}
       {% endblock%}
 </body>
