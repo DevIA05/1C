@@ -4,18 +4,19 @@ const ctx  = document.getElementById('mainChart');
 const cty  = document.getElementById('detailChart');
 const cty2  = document.getElementById('detailChart2');
 
-let instance_main_chart   = []; 
-let instance_detail_chart = [];
+let instance_main_chart   = []; // saves all instances of a main chart (place in document.getElementById('mainChart');)
+let instance_detail_chart = []; // saves all instances of a detail chart (place in document.getElementById('detailChart');)
 let choice = {}
 
-let nameB = ""
+let nameB = ""                  // when you click on an element of a graph nameB allows you to know which graph detail 
+                                // you want to have to make the request to the server
 
 // ================================= EVENT =================================
 
 /** Adds the function to request the data from the server. */
 for (b of btns) {
     b.addEventListener('click', function() {
-      destroyCharts(instance_main_chart); destroyCharts(instance_detail_chart)
+      destroyCharts(instance_main_chart); destroyCharts(instance_detail_chart)  // destroys the instance of the current detail chart to make room for a new one
       choice = document.querySelector('input[name="choice"]:checked').value;   // ascending or descending
       limit  = document.getElementById("ph").value;                            // how much value we want to have
       nameB = this.name
@@ -28,7 +29,8 @@ for (b of btns) {
 // =========================================================================
 
 /** Ask the server for the data corresponding to the code and and process requests
- * 
+ *  Perform an asynchronous HTTP (Ajax) request.
+ *  By default, all requests are sent asynchronously 
  * @param {dict} d: contains the data request, if you want to sort in ascending or descending order and how much value we want to have
  */
 function dataRequest(d){
@@ -36,12 +38,13 @@ function dataRequest(d){
   // ------------------- Send data to view -------------------
   $.ajax({
       type: "POST",
-      url: 'getDataForChart', // Name of the django view that will retrieve the data
+      url: 'getDataForChart', // Name of the django view that will retrieve the data, 
+                              // Perform an asynchronous HTTP (Ajax) request. 
       data: {
           csrfmiddlewaretoken : csrf,
           "result": d,       // data to send
       },
-      dataType: "json",
+      dataType: "json",     // The type of data that you're expecting back from the server.
       // ------------------- Receiving data from the view -------------------
       success: function (response) { // if send successful 
         switch(response["claim"]) {
