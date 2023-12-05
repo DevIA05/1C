@@ -27,5 +27,5 @@ urlpatterns = [
     path("dashboard", login_required(function=views.dashboard, login_url="login"), name="dashboard"),
     path("download-file", login_required(views.fileErr, login_url="login"), name="downloadfile"),
     re_path(r'^getDataForChart$', views.getDataForChart),
-    path('__debug__/', include('debug_toolbar.urls')),
+    #path('__debug__/', include('debug_toolbar.urls')),
 ]
