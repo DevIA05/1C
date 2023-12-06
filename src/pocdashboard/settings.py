@@ -26,17 +26,15 @@ SECRET_KEY = 'django-insecure-f48c75d&lxow3zz*b(zq!w-5hmbs6j8w$5y+)=9i9_m57o71bp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net", "127.0.0.1"]
+ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net"]
 
 CORS_ALLOWED_ORIGINS = [
     "https://app-pocdashboard.azurewebsites.net",
     # Ajoutez d'autres origines autorisées si nécessaire
 ]
-SECURE_SSL_REDIRECT = True
+
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = True
+
 
 # Application definition
 
