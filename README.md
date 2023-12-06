@@ -18,3 +18,8 @@ python src/manage.py runserver
 
 # Jeu de données
 Un jeu de données d'exemple se trouve dans **ressource/data/data_demo.csv**. 
+
+# Application
+Après s'être connecté:
+
+![Alt text](img/onglet_csv.png)
