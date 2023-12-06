@@ -207,8 +207,9 @@ def addDataInDB(dataframe):
     user = settings.DATABASES['default']['USER']
     password = settings.DATABASES['default']['PASSWORD']
     database_name = settings.DATABASES['default']['NAME']
-    db_url = 'postgresql://{user}:{password}@localhost:5432/{database_name}'.format(user=user, 
-    password=password, database_name=database_name)
+    host = settings.DATABASES['default']['HOST']
+    db_url = 'postgresql://{user}:{password}@{host}:5432/{database_name}'.format(user=user, 
+    password=password, host=host, database_name=database_name)
     engine = sqlalchemy.create_engine(db_url, echo=False)
     
     # country 

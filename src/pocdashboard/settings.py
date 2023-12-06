@@ -88,11 +88,11 @@ WSGI_APPLICATION = 'pocdashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'db1C', 
-        'USER': 'postgres',
-        'PASSWORD': '0000',
-        'HOST': '127.0.0.1', 
-        'PORT': '5432',
+        'NAME': 'postgres', #'db1C', 
+        'USER': 'poc_pg4', #'postgres',
+        'PASSWORD': 'Dashboard!', #'0000',
+        'HOST': 'pocdashboard.postgres.database.azure.com', #'127.0.0.1', 
+        'PORT': '5432'
     }
 }
 
