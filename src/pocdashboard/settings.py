@@ -24,15 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f48c75d&lxow3zz*b(zq!w-5hmbs6j8w$5y+)=9i9_m57o71bp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net", "127.0.0.1"]
+ALLOWED_HOSTS = []
 
-CORS_ALLOWED_ORIGINS = [
-    "https://app-pocdashboard.azurewebsites.net",
-    # Ajoutez d'autres origines autorisées si nécessaire
-]
-SECURE_SSL_REDIRECT = True
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pocdashboard',
-    "corsheaders"
 ]
 # debug_toolbar
 
@@ -54,8 +49,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 #    "debug_toolbar.middleware.DebugToolbarMiddleware",
 
@@ -94,10 +88,10 @@ WSGI_APPLICATION = 'pocdashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres', #'db1C', 
-        'USER': 'poc_pg4', #'postgres',
-        'PASSWORD': 'Dashboard!', #'0000',
-        'HOST': 'pocdashboard.postgres.database.azure.com', #'127.0.0.1', 
+        'NAME': 'db1C', 
+        'USER': 'postgres',
+        'PASSWORD': '0000',
+        'HOST': '127.0.0.1', 
         'PORT': '5432'
     }
 }
