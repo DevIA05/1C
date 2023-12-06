@@ -15,3 +15,6 @@ python -m virtualenv .venv
 pip install -r requirements.txt
 python src/manage.py runserver
 ```
+
+# Jeu de données
+Un jeu de données d'exemple se trouve dans **ressource/data/data_demo.csv**. 
