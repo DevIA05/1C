@@ -32,7 +32,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://app-pocdashboard.azurewebsites.net",
     # Ajoutez d'autres origines autorisées si nécessaire
 ]
-
+SECURE_SSL_REDIRECT = True
 # Application definition
 
 INSTALLED_APPS = [
