@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-f48c75d&lxow3zz*b(zq!w-5hmbs6j8w$5y+)=9i9_m57o71bp
 DEBUG = True
 
 ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net", "127.0.0.1"]
-
+CSRF_TRUSTED_ORIGINS = ['app-pocdashboard.azurewebsites.net']
 CORS_ALLOWED_ORIGINS = [
     "https://app-pocdashboard.azurewebsites.net",
     # Ajoutez d'autres origines autorisées si nécessaire
