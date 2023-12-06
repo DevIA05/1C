@@ -28,6 +28,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net"]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://app-pocdashboard.azurewebsites.net",
+    # Ajoutez d'autres origines autorisées si nécessaire
+]
 
 # Application definition
 
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pocdashboard',
+    "corsheaders"
 ]
 # debug_toolbar
 
@@ -49,7 +54,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 #    "debug_toolbar.middleware.DebugToolbarMiddleware",
 
