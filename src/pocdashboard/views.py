@@ -41,6 +41,8 @@ def logout_user(request):
     return redirect('login')
 
 # Dashboard
+from django.views.decorators.csrf import csrf_protect
+@csrf_protect
 def dashboard(request):
     # pdb.set_trace()
     form = CsvImportForm() 
