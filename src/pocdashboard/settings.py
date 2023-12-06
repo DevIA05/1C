@@ -33,6 +33,11 @@ CORS_ALLOWED_ORIGINS = [
     # Ajoutez d'autres origines autorisées si nécessaire
 ]
 SECURE_SSL_REDIRECT = True
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+
 # Application definition
 
 INSTALLED_APPS = [
