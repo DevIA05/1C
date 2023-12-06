@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-f48c75d&lxow3zz*b(zq!w-5hmbs6j8w$5y+)=9i9_m57o71bp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["app-pocdashboard.azurewebsites.net"]
 
 
 # Application definition
