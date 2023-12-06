@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-f48c75d&lxow3zz*b(zq!w-5hmbs6j8w$5y+)=9i9_m57o71bp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1"]
 
 
 # Application definition
@@ -88,10 +88,10 @@ WSGI_APPLICATION = 'pocdashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'db1C', 
-        'USER': 'postgres',
-        'PASSWORD': '0000',
-        'HOST': '127.0.0.1', 
+        'NAME': 'postgres', #'db1C', 
+        'USER': 'poc_pg4', #'postgres',
+        'PASSWORD': 'Dashboard!', #'0000',
+        'HOST': 'pocdashboard.postgres.database.azure.com', #'127.0.0.1', 
         'PORT': '5432'
     }
 }
