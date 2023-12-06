@@ -19,6 +19,8 @@ from django.http import JsonResponse
 from django.db import connection
 
 # Connexion
+from django.views.decorators.csrf import csrf_protect
+@csrf_protect
 def login_user(request):
     # Récupération des identifiants
     if request.method == "POST":
@@ -41,7 +43,6 @@ def logout_user(request):
     return redirect('login')
 
 # Dashboard
-from django.views.decorators.csrf import csrf_protect
 @csrf_protect
 def dashboard(request):
     # pdb.set_trace()
